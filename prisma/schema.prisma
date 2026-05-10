@@ -1,0 +1,431 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// =====================================================
+// RESELLER-EBENE
+// =====================================================
+
+model Reseller {
+  id           String          @id @default(cuid())
+  name         String
+  contactEmail String
+  logoUrl      String?
+  primaryColor String?
+  customDomain String?         @unique
+  plans        Plan[]
+  tenants      Tenant[]
+  admins       ResellerAdmin[]
+  createdAt    DateTime        @default(now())
+  updatedAt    DateTime        @updatedAt
+}
+
+model ResellerAdmin {
+  id           String            @id @default(cuid())
+  email        String            @unique
+  passwordHash String
+  totpSecret   String?
+  totpEnabled  Boolean           @default(false)
+  resellerId   String
+  reseller     Reseller          @relation(fields: [resellerId], references: [id], onDelete: Cascade)
+  role         ResellerAdminRole @default(ADMIN)
+  lastLoginAt  DateTime?
+  createdAt    DateTime          @default(now())
+  updatedAt    DateTime          @updatedAt
+}
+
+enum ResellerAdminRole {
+  OWNER
+  ADMIN
+  SUPPORT
+  READ_ONLY
+}
+
+model Plan {
+  id              String   @id @default(cuid())
+  resellerId      String
+  reseller        Reseller @relation(fields: [resellerId], references: [id], onDelete: Cascade)
+  name            String
+  monthlyPrice    Decimal  @db.Decimal(10, 2)
+  setupFee        Decimal  @db.Decimal(10, 2)
+  maxUsers        Int
+  storageGB       Int
+  maxFileSizeMB   Int      @default(100)
+  retentionDays   Int      @default(90)
+  hasOutlookAddin Boolean  @default(false)
+  hasBayernID     Boolean  @default(false)
+  hasEID          Boolean  @default(false)
+  hasAPI          Boolean  @default(false)
+  isTrial         Boolean  @default(false)
+  trialDays       Int?
+  active          Boolean  @default(true)
+  tenants         Tenant[]
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+}
+
+// =====================================================
+// MANDANT
+// =====================================================
+
+model Tenant {
+  id               String          @id @default(cuid())
+  resellerId       String
+  reseller         Reseller        @relation(fields: [resellerId], references: [id])
+  planId           String
+  plan             Plan            @relation(fields: [planId], references: [id])
+  name             String
+  slug             String          @unique
+  billingEmail     String
+  billingAddress   Json
+  autoLoginDomains String[]
+  logoUrl          String?
+  primaryColor     String?
+  customDomain     String?         @unique
+  tenantMasterKey  Bytes
+  tmkIv            Bytes
+  tmkAuthTag       Bytes
+  storageUsedBytes BigInt          @default(0)
+  status           TenantStatus    @default(ACTIVE)
+  trialEndsAt      DateTime?
+  createdAt        DateTime        @default(now())
+  updatedAt        DateTime        @updatedAt
+
+  organisationUnits OrganisationUnit[]
+  users             User[]
+  customers         Customer[]
+  messages          Message[]
+  apiKeys           ApiKey[]
+  importJobs        ImportJob[]
+  settings          TenantSettings?
+}
+
+enum TenantStatus {
+  TRIAL
+  ACTIVE
+  SUSPENDED
+  CANCELLED
+}
+
+model TenantSettings {
+  id                        String        @id @default(cuid())
+  tenantId                  String        @unique
+  tenant                    Tenant        @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  allowEmployeeOUCreate     Boolean       @default(false)
+  allowCustomerReplyDefault Boolean       @default(true)
+  allowSubjectEncryption    Boolean       @default(true)
+  defaultSecurityLevel      SecurityLevel @default(LEVEL_2)
+  defaultMinTrustLevel      TrustLevel    @default(EMAIL)
+  retentionDaysOverride     Int?
+  imprintHtml               String?
+  privacyPolicyHtml         String?
+  updatedAt                 DateTime      @updatedAt
+}
+
+// =====================================================
+// ORGANISATIONSEINHEITEN
+// =====================================================
+
+model OrganisationUnit {
+  id          String             @id @default(cuid())
+  tenantId    String
+  tenant      Tenant             @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  parentId    String?
+  parent      OrganisationUnit?  @relation("OUHierarchy", fields: [parentId], references: [id])
+  children    OrganisationUnit[] @relation("OUHierarchy")
+  name        String
+  description String?
+  members     UserOnOU[]
+  customers   CustomerOnOU[]
+  createdAt   DateTime           @default(now())
+  updatedAt   DateTime           @updatedAt
+}
+
+model UserOnOU {
+  userId String
+  ouId   String
+  role   OURole           @default(MEMBER)
+  user   User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  ou     OrganisationUnit @relation(fields: [ouId], references: [id], onDelete: Cascade)
+
+  @@id([userId, ouId])
+}
+
+enum OURole {
+  MEMBER
+  ADMIN
+}
+
+// =====================================================
+// USER
+// =====================================================
+
+model User {
+  id           String       @id @default(cuid())
+  tenantId     String
+  tenant       Tenant       @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  salutation   String?
+  firstName    String
+  lastName     String
+  email        String       @unique
+  passwordHash String?
+  totpSecret   String?
+  totpEnabled  Boolean      @default(false)
+  roles        UserRole[]
+  ous          UserOnOU[]
+  lastLoginAt  DateTime?
+  sentMessages Message[]    @relation("MessageSender")
+  ownedCustomers Customer[] @relation("CustomerOwner")
+  customerNotes CustomerNote[]
+  createdAt    DateTime     @default(now())
+  updatedAt    DateTime     @updatedAt
+}
+
+enum UserRole {
+  TENANT_ADMIN
+  USER_MANAGER
+  CUSTOMER_MANAGER
+  EMPLOYEE
+}
+
+// =====================================================
+// CUSTOMER
+// =====================================================
+
+model Customer {
+  id              String             @id @default(cuid())
+  tenantId        String
+  tenant          Tenant             @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  salutation      String?
+  firstName       String
+  lastName        String
+  email           String
+  mobilePhone     String?
+  landlinePhone   String?
+  street          String?
+  zipCode         String?
+  city            String?
+  country         String?            @default("DE")
+  visibility      CustomerVisibility @default(PRIVATE)
+  ownerUserId     String?
+  owner           User?              @relation("CustomerOwner", fields: [ownerUserId], references: [id])
+  trustLevel      TrustLevel         @default(NONE)
+  trustVerifiedAt DateTime?
+  trustMethods    TrustMethod[]
+  hasAccount      Boolean            @default(false)
+  passwordHash    String?
+  totpSecret      String?
+  totpEnabled     Boolean            @default(false)
+  publicKey       Bytes?
+  ous             CustomerOnOU[]
+  receivedMessages Message[]         @relation("MessageRecipient")
+  notes           CustomerNote[]
+  createdAt       DateTime           @default(now())
+  updatedAt       DateTime           @updatedAt
+
+  @@unique([tenantId, email])
+}
+
+enum CustomerVisibility {
+  PRIVATE
+  ORGANISATION
+  OU
+}
+
+model CustomerOnOU {
+  customerId String
+  ouId       String
+  customer   Customer         @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  ou         OrganisationUnit @relation(fields: [ouId], references: [id], onDelete: Cascade)
+
+  @@id([customerId, ouId])
+}
+
+model CustomerNote {
+  id         String   @id @default(cuid())
+  customerId String
+  customer   Customer @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  authorId   String
+  author     User     @relation(fields: [authorId], references: [id])
+  content    String
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+}
+
+enum TrustLevel {
+  NONE
+  EMAIL
+  SMS
+  PIN_LETTER
+  BAYERN_ID_S
+  BAYERN_ID_H
+  EID
+}
+
+model TrustMethod {
+  id         String     @id @default(cuid())
+  customerId String
+  customer   Customer   @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  method     TrustLevel
+  verifiedAt DateTime
+  metadata   Json?
+}
+
+// =====================================================
+// MESSAGES & ATTACHMENTS
+// =====================================================
+
+model Message {
+  id                 String        @id @default(cuid())
+  tenantId           String
+  tenant             Tenant        @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  senderId           String
+  sender             User          @relation("MessageSender", fields: [senderId], references: [id])
+  recipientId        String
+  recipient          Customer      @relation("MessageRecipient", fields: [recipientId], references: [id])
+  subjectIsEncrypted Boolean       @default(false)
+  subjectPlain       String?
+  subjectCiphertext  Bytes?
+  subjectIv          Bytes?
+  subjectAuthTag     Bytes?
+  bodyCiphertext     Bytes
+  bodyIv             Bytes
+  bodyAuthTag        Bytes
+  securityLevel      SecurityLevel
+  minTrustLevel      TrustLevel
+  messageKey         Bytes
+  messageKeyIv       Bytes
+  messageKeyAuthTag  Bytes
+  passwordHint       String?
+  passwordSalt       Bytes?
+  allowReply         Boolean       @default(true)
+  allowReplyAttach   Boolean       @default(true)
+  isFileRequest      Boolean       @default(false)
+  fileRequestPrompt  String?
+  parentMessageId    String?
+  parent             Message?      @relation("Thread", fields: [parentMessageId], references: [id])
+  replies            Message[]     @relation("Thread")
+  sentAt             DateTime      @default(now())
+  firstReadAt        DateTime?
+  lastReadAt         DateTime?
+  expiresAt          DateTime
+  deletedAt          DateTime?
+  legalHold          Boolean       @default(false)
+  attachments        Attachment[]
+  events             MessageEvent[]
+}
+
+enum SecurityLevel {
+  LEVEL_1
+  LEVEL_2
+  LEVEL_3
+  LEVEL_4
+}
+
+model Attachment {
+  id                 String          @id @default(cuid())
+  messageId          String
+  message            Message         @relation(fields: [messageId], references: [id], onDelete: Cascade)
+  filenameCiphertext Bytes
+  filenameIv         Bytes
+  filenameAuthTag    Bytes
+  mimeType           String
+  sizeBytes          BigInt
+  storageKey         String
+  contentIv          Bytes
+  contentAuthTag     Bytes
+  virusScanStatus    VirusScanStatus @default(PENDING)
+  virusScanResult    String?
+  uploadedByCustomer Boolean         @default(false)
+  createdAt          DateTime        @default(now())
+}
+
+enum VirusScanStatus {
+  PENDING
+  CLEAN
+  INFECTED
+  ERROR
+}
+
+// =====================================================
+// AUDIT LOG
+// =====================================================
+
+model MessageEvent {
+  id        String           @id @default(cuid())
+  messageId String
+  message   Message          @relation(fields: [messageId], references: [id], onDelete: Cascade)
+  eventType MessageEventType
+  actorType ActorType
+  actorId   String?
+  ipAddress String?
+  userAgent String?
+  metadata  Json?
+  createdAt DateTime         @default(now())
+
+  @@index([messageId, createdAt])
+}
+
+enum MessageEventType {
+  SENT
+  DELIVERED_NOTIFICATION
+  OPENED
+  ATTACHMENT_DOWNLOADED
+  REPLIED
+  EXPIRED
+  DELETED
+  PASSWORD_FAILED
+  TRUST_CHECK_FAILED
+}
+
+enum ActorType {
+  USER
+  CUSTOMER
+  SYSTEM
+}
+
+// =====================================================
+// SONSTIGES
+// =====================================================
+
+model ApiKey {
+  id         String    @id @default(cuid())
+  tenantId   String
+  tenant     Tenant    @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  name       String
+  keyHash    String    @unique
+  scopes     String[]
+  lastUsedAt DateTime?
+  expiresAt  DateTime?
+  createdAt  DateTime  @default(now())
+}
+
+model ImportJob {
+  id          String       @id @default(cuid())
+  tenantId    String
+  tenant      Tenant       @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  type        ImportType
+  status      ImportStatus
+  totalRows   Int
+  successRows Int          @default(0)
+  errorRows   Int          @default(0)
+  errorReport Json?
+  createdAt   DateTime     @default(now())
+}
+
+enum ImportType {
+  USERS
+  CUSTOMERS
+}
+
+enum ImportStatus {
+  PENDING
+  RUNNING
+  COMPLETED
+  FAILED
+}
