@@ -65,7 +65,9 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         const ip = String(credentials._ip ?? "unknown");
         if (!checkRateLimit(ip)) return null;
 
-        const email = String(credentials.email ?? "").toLowerCase().trim();
+        const email = String(credentials.email ?? "")
+          .toLowerCase()
+          .trim();
         const password = String(credentials.password ?? "");
 
         if (!email || !password) return null;
@@ -119,7 +121,9 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         const ip = String(credentials._ip ?? "unknown");
         if (!checkRateLimit(ip)) return null;
 
-        const email = String(credentials.email ?? "").toLowerCase().trim();
+        const email = String(credentials.email ?? "")
+          .toLowerCase()
+          .trim();
         const password = String(credentials.password ?? "");
 
         if (!email || !password) return null;
@@ -168,7 +172,9 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         const ip = String(credentials._ip ?? "unknown");
         if (!checkRateLimit(ip)) return null;
 
-        const email = String(credentials.email ?? "").toLowerCase().trim();
+        const email = String(credentials.email ?? "")
+          .toLowerCase()
+          .trim();
         const password = String(credentials.password ?? "");
         const tenantSlug = String(credentials.tenantSlug ?? "").trim();
 

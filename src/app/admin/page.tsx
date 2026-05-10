@@ -19,7 +19,7 @@ export default async function AdminPage() {
     prisma.organisationUnit.count({ where: { tenantId } }),
   ]);
 
-  const storageGB = Number(tenant.storageUsedBytes) / (1024 ** 3);
+  const storageGB = Number(tenant.storageUsedBytes) / 1024 ** 3;
 
   return (
     <div className="space-y-6">
@@ -67,11 +67,7 @@ export default async function AdminPage() {
           <InfoRow label="Abrechnung" value={tenant.billingEmail} />
           <InfoRow
             label="Auto-Login-Domains"
-            value={
-              tenant.autoLoginDomains.length > 0
-                ? tenant.autoLoginDomains.join(", ")
-                : "—"
-            }
+            value={tenant.autoLoginDomains.length > 0 ? tenant.autoLoginDomains.join(", ") : "—"}
           />
           <InfoRow
             label="Aufbewahrungsfrist"
@@ -87,15 +83,7 @@ export default async function AdminPage() {
   );
 }
 
-function StatCard({
-  title,
-  value,
-  icon,
-}: {
-  title: string;
-  value: string;
-  icon: React.ReactNode;
-}) {
+function StatCard({ title, value, icon }: { title: string; value: string; icon: React.ReactNode }) {
   return (
     <Card>
       <CardHeader className="flex flex-row items-center justify-between pb-2">

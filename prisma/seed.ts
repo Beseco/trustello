@@ -127,7 +127,9 @@ async function main() {
         country: "DE",
       },
       autoLoginDomains: ["stadt-freising-demo.de"],
-      tenantMasterKey: Buffer.from(tmkMaterial.tenantMasterKey) as unknown as Uint8Array<ArrayBuffer>,
+      tenantMasterKey: Buffer.from(
+        tmkMaterial.tenantMasterKey,
+      ) as unknown as Uint8Array<ArrayBuffer>,
       tmkIv: Buffer.from(tmkMaterial.tmkIv) as unknown as Uint8Array<ArrayBuffer>,
       tmkAuthTag: Buffer.from(tmkMaterial.tmkAuthTag) as unknown as Uint8Array<ArrayBuffer>,
       status: "ACTIVE",

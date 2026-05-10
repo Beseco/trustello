@@ -19,9 +19,7 @@ export const metadata: Metadata = {
     "Sicherer Datenaustausch zwischen Behörden und Bürgern. DSGVO-konform, Ende-zu-Ende-verschlüsselt.",
 };
 
-export default function RootLayout({
-  children,
-}: Readonly<{ children: React.ReactNode }>) {
+export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   return (
     <html lang="de" className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}>
       <body className="min-h-full bg-background text-foreground">

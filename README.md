@@ -9,6 +9,7 @@ Trustello ist eine schlanke SaaS-Plattform für den vertraulichen Dokumentenaust
 zwischen Behörden und Bürgern — eine günstigere Alternative zu FTAPI für kleinere Kommunen.
 
 **Kernfunktionen:**
+
 - Ende-zu-Ende-Verschlüsselung (AES-256-GCM, Envelope Encryption)
 - Mehrmandantenfähig (Reseller → Mandant → Abteilung → Benutzer)
 - Sicherer Bürger-Zugang per Magic-Link (kein App-Download)
@@ -58,11 +59,11 @@ pnpm dev
 
 ## Test-Zugangsdaten (Seed)
 
-| Rolle | E-Mail | Passwort |
-|---|---|---|
-| Tenant-Admin | admin@stadt-freising-demo.de | Test1234! |
-| Mitarbeiter | hans.meier@stadt-freising-demo.de | Test1234! |
-| Reseller-Admin | florian@beubl.de | admin123! |
+| Rolle          | E-Mail                            | Passwort  |
+| -------------- | --------------------------------- | --------- |
+| Tenant-Admin   | admin@stadt-freising-demo.de      | Test1234! |
+| Mitarbeiter    | hans.meier@stadt-freising-demo.de | Test1234! |
+| Reseller-Admin | florian@beubl.de                  | admin123! |
 
 **Selbstregistrierung:** E-Mail-Domain `@stadt-freising-demo.de` ist für Auto-Login freigeschaltet.
 
@@ -107,6 +108,7 @@ src/
 ```
 
 **Verschlüsselungs-Architektur (3 Ebenen):**
+
 ```
 MASTER_KEY (env)
   └─ wraps → Tenant Master Key (DB, verschlüsselt)
@@ -128,6 +130,7 @@ Tests laufen mit Vitest. Nur der Crypto-Layer hat Tests in Phase 1 — kein Mock
 Siehe [deploy/README.md](deploy/README.md) für die vollständige Server-Setup-Anleitung.
 
 **Kurzversion:**
+
 ```
 Nginx (TLS) → Docker Compose → Next.js (Port 3000 intern)
                              → PostgreSQL 16

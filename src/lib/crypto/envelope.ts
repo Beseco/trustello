@@ -96,7 +96,11 @@ export function createMessageKeyMaterial(tmk: Buffer): {
 
 export function unwrapMessageKey(material: MessageKeyMaterial, tmk: Buffer): Buffer {
   return unwrapKey(
-    { ciphertext: material.messageKey, iv: material.messageKeyIv, authTag: material.messageKeyAuthTag },
+    {
+      ciphertext: material.messageKey,
+      iv: material.messageKeyIv,
+      authTag: material.messageKeyAuthTag,
+    },
     tmk,
   );
 }

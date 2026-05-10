@@ -126,14 +126,8 @@ export default function LoginPage() {
             <p className="rounded-md bg-destructive/10 p-3 text-sm text-destructive">{error}</p>
           )}
 
-          <Button
-            type="submit"
-            className="w-full"
-            disabled={form.formState.isSubmitting}
-          >
-            {form.formState.isSubmitting && (
-              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-            )}
+          <Button type="submit" className="w-full" disabled={form.formState.isSubmitting}>
+            {form.formState.isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
             Anmelden
           </Button>
         </form>
@@ -141,7 +135,10 @@ export default function LoginPage() {
 
       <p className="text-center text-sm text-muted-foreground">
         Noch kein Konto?{" "}
-        <Link href="/register" className="font-medium underline underline-offset-4 hover:text-foreground">
+        <Link
+          href="/register"
+          className="font-medium underline underline-offset-4 hover:text-foreground"
+        >
           Jetzt registrieren
         </Link>
       </p>

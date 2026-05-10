@@ -25,15 +25,9 @@ export function Logo({ className, showText = true }: LogoProps) {
           strokeLinejoin="round"
           fill="none"
         />
-        <path
-          d="M16 11L20 13V19L16 21L12 19V13L16 11Z"
-          fill="white"
-          opacity="0.8"
-        />
+        <path d="M16 11L20 13V19L16 21L12 19V13L16 11Z" fill="white" opacity="0.8" />
       </svg>
-      {showText && (
-        <span className="text-xl font-semibold tracking-tight">Trustello</span>
-      )}
+      {showText && <span className="text-xl font-semibold tracking-tight">Trustello</span>}
     </div>
   );
 }

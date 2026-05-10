@@ -79,11 +79,7 @@ function FormLabel({
 }: React.ComponentPropsWithoutRef<typeof LabelPrimitive.Root>) {
   const { error, formItemId } = useFormField();
   return (
-    <Label
-      className={cn(error && "text-destructive", className)}
-      htmlFor={formItemId}
-      {...props}
-    />
+    <Label className={cn(error && "text-destructive", className)} htmlFor={formItemId} {...props} />
   );
 }
 
@@ -110,7 +106,11 @@ function FormDescription({ className, ...props }: React.HTMLAttributes<HTMLParag
   );
 }
 
-function FormMessage({ className, children, ...props }: React.HTMLAttributes<HTMLParagraphElement>) {
+function FormMessage({
+  className,
+  children,
+  ...props
+}: React.HTMLAttributes<HTMLParagraphElement>) {
   const { error, formMessageId } = useFormField();
   const body = error ? String(error?.message ?? "") : children;
   if (!body) return null;

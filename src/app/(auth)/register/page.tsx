@@ -48,8 +48,8 @@ export default function RegisterPage() {
         <div className="flex flex-col items-center gap-4 py-4">
           <CheckCircle2 className="h-12 w-12 text-green-500" />
           <p className="text-center text-sm text-muted-foreground">
-            Ihr Konto wurde angelegt. Eine Bestätigungs-E-Mail wurde an Ihre Adresse geschickt.
-            Sie werden in Kürze zur Anmeldung weitergeleitet.
+            Ihr Konto wurde angelegt. Eine Bestätigungs-E-Mail wurde an Ihre Adresse geschickt. Sie
+            werden in Kürze zur Anmeldung weitergeleitet.
           </p>
         </div>
       </AuthLayout>
@@ -146,7 +146,10 @@ export default function RegisterPage() {
 
       <p className="text-center text-sm text-muted-foreground">
         Bereits ein Konto?{" "}
-        <Link href="/login" className="font-medium underline underline-offset-4 hover:text-foreground">
+        <Link
+          href="/login"
+          className="font-medium underline underline-offset-4 hover:text-foreground"
+        >
           Anmelden
         </Link>
       </p>

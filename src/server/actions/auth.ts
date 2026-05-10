@@ -11,9 +11,7 @@ export type RegisterEmployeeResult = {
   error?: string;
 };
 
-export async function registerEmployee(
-  data: unknown,
-): Promise<RegisterEmployeeResult> {
+export async function registerEmployee(data: unknown): Promise<RegisterEmployeeResult> {
   const parsed = registerEmployeeSchema.safeParse(data);
   if (!parsed.success) {
     const firstIssue = parsed.error.issues[0];

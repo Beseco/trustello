@@ -38,8 +38,8 @@ export default function MarketingPage() {
 
         <p className="max-w-2xl text-lg text-muted-foreground">
           Trustello ermöglicht Gemeinden, Städten und Landkreisen den vertraulichen
-          Dokumentenaustausch mit Bürgern — einfach, sicher und gesetzeskonform.
-          Die schlanke Alternative für kleinere Kommunen.
+          Dokumentenaustausch mit Bürgern — einfach, sicher und gesetzeskonform. Die schlanke
+          Alternative für kleinere Kommunen.
         </p>
 
         <div className="flex flex-col gap-3 sm:flex-row">
@@ -60,9 +60,7 @@ export default function MarketingPage() {
       {/* Features */}
       <section className="border-t bg-muted/40 py-16">
         <div className="mx-auto max-w-5xl px-4">
-          <h2 className="mb-12 text-center text-2xl font-semibold">
-            Warum Trustello?
-          </h2>
+          <h2 className="mb-12 text-center text-2xl font-semibold">Warum Trustello?</h2>
           <div className="grid gap-6 sm:grid-cols-3">
             <FeatureCard
               icon={<Lock className="h-5 w-5" />}
@@ -134,9 +132,13 @@ export default function MarketingPage() {
               kontakt@trustello.de
             </a>
             {" · "}
-            <a href="/impressum" className="hover:underline">Impressum</a>
+            <a href="/impressum" className="hover:underline">
+              Impressum
+            </a>
             {" · "}
-            <a href="/datenschutz" className="hover:underline">Datenschutz</a>
+            <a href="/datenschutz" className="hover:underline">
+              Datenschutz
+            </a>
           </p>
         </div>
       </footer>

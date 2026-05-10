@@ -7,14 +7,7 @@ import { Logo } from "./Logo";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Separator } from "@/components/ui/separator";
-import {
-  Inbox,
-  Settings,
-  Users,
-  LayoutDashboard,
-  LogOut,
-  Building2,
-} from "lucide-react";
+import { Inbox, Settings, Users, LayoutDashboard, LogOut, Building2 } from "lucide-react";
 
 type NavItem = {
   href: string;
@@ -39,11 +32,7 @@ type DashboardLayoutProps = {
   variant?: "employee" | "admin";
 };
 
-export function DashboardLayout({
-  children,
-  user,
-  variant = "employee",
-}: DashboardLayoutProps) {
+export function DashboardLayout({ children, user, variant = "employee" }: DashboardLayoutProps) {
   const pathname = usePathname();
   const navItems = variant === "admin" ? adminNav : employeeNav;
 
