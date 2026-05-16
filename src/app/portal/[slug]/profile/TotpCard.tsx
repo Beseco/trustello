@@ -86,7 +86,7 @@ function DisableTotpForm({ onDisabled }: { onDisabled: () => void }) {
         <Input
           id="dis-pw"
           type="password"
-          placeholder="••••••••••"
+          placeholder="Passwort eingeben"
           value={password}
           onChange={(e) => setPassword(e.target.value)}
           className="mt-1"
@@ -225,7 +225,7 @@ function EnableTotpFlow({ onEnabled }: { onEnabled: () => void }) {
           <Input
             id="totp-pw"
             type="password"
-            placeholder="••••••••••"
+            placeholder="Passwort eingeben"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             className="mt-1"

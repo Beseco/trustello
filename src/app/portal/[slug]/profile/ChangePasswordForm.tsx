@@ -43,7 +43,7 @@ export function ChangePasswordForm() {
             type={showCurrent ? "text" : "password"}
             autoComplete="current-password"
             required
-            placeholder="••••••••••"
+            placeholder="Passwort eingeben"
           />
           <button
             type="button"
@@ -66,7 +66,7 @@ export function ChangePasswordForm() {
             type={showNew ? "text" : "password"}
             autoComplete="new-password"
             required
-            placeholder="••••••••••"
+            placeholder="Passwort eingeben"
           />
           <button
             type="button"
@@ -91,7 +91,7 @@ export function ChangePasswordForm() {
           type="password"
           autoComplete="new-password"
           required
-          placeholder="••••••••••"
+          placeholder="Passwort eingeben"
           className="mt-1"
         />
       </div>

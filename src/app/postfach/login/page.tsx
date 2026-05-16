@@ -83,7 +83,7 @@ export default function PostfachLoginPage() {
                   autoComplete="current-password"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  placeholder="••••••••••"
+                  placeholder="Passwort eingeben"
                   required
                 />
                 <button

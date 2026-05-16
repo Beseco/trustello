@@ -73,7 +73,7 @@ export function CitizenLoginForm({ slug }: Props) {
         <Input
           id="password"
           type="password"
-          placeholder="••••••••"
+          placeholder="Passwort eingeben"
           autoComplete="current-password"
           value={password}
           onChange={(e) => setPassword(e.target.value)}

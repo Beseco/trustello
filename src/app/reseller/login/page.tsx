@@ -97,7 +97,7 @@ export default function ResellerLoginPage() {
                   autoComplete="current-password"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  placeholder="••••••••••"
+                  placeholder="Passwort eingeben"
                   required
                 />
                 <button
