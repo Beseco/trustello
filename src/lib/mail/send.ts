@@ -1,12 +1,5 @@
-import nodemailer from "nodemailer";
 import { logger } from "@/lib/logger";
-
-const transporter = nodemailer.createTransport({
-  host: process.env.SMTP_HOST ?? "localhost",
-  port: Number(process.env.SMTP_PORT ?? 1025),
-  secure: false,
-  ignoreTLS: true,
-});
+import { resolveSmtpTransporter } from "./smtp";
 
 type MailOptions = {
   to: string;
@@ -14,13 +7,21 @@ type MailOptions = {
   html: string;
 };
 
-export async function sendMail(opts: MailOptions): Promise<void> {
-  const from = process.env.SMTP_FROM ?? "noreply@trustello.local";
+/**
+ * Sendet eine E-Mail.
+ *
+ * @param opts       Empfänger, Betreff und HTML-Inhalt
+ * @param tenantId   Optional: Tenant-ID → SMTP-Lookup (Tenant → Reseller → Env)
+ * @param resellerId Optional: direkt per Reseller-ID (z.B. für Reseller-eigene Mails ohne Tenant-Kontext)
+ */
+export async function sendMail(opts: MailOptions, tenantId?: string, resellerId?: string): Promise<void> {
+  const { transporter, from, source } = await resolveSmtpTransporter(tenantId, resellerId);
+
   try {
     await transporter.sendMail({ from, ...opts });
-    logger.info({ to: opts.to, subject: opts.subject }, "Mail sent");
+    logger.info({ to: opts.to, subject: opts.subject, smtpSource: source }, "Mail sent");
   } catch (err) {
-    logger.error({ err, to: opts.to }, "Failed to send mail");
+    logger.error({ err, to: opts.to, smtpSource: source }, "Failed to send mail");
     throw err;
   }
 }

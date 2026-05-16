@@ -3,22 +3,26 @@ import Credentials from "next-auth/providers/credentials";
 import * as argon2 from "argon2";
 import { prisma } from "@/lib/db";
 import type { UserRole } from "@prisma/client";
+import { authConfig } from "@/auth.config";
+import { checkRateLimit } from "@/lib/rate-limit";
 
 declare module "next-auth" {
   interface Session {
     user: {
       id: string;
-      userType: "employee" | "reseller" | "customer";
+      userType: "employee" | "reseller" | "customer" | "citizen";
       tenantId?: string;
       resellerId?: string;
+      citizenAccountId?: string;
       roles: UserRole[];
     } & DefaultSession["user"];
   }
 
   interface User {
-    userType: "employee" | "reseller" | "customer";
+    userType: "employee" | "reseller" | "customer" | "citizen";
     tenantId?: string;
     resellerId?: string;
+    citizenAccountId?: string;
     roles?: UserRole[];
   }
 }
@@ -27,30 +31,18 @@ declare module "next-auth" {
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 type TrustelloJWT = Record<string, any> & {
   id: string;
-  userType: "employee" | "reseller" | "customer";
+  userType: "employee" | "reseller" | "customer" | "citizen";
   tenantId?: string;
   resellerId?: string;
+  citizenAccountId?: string;
   roles: UserRole[];
 };
 
-// In-memory rate limiter for auth endpoints
-const loginAttempts = new Map<string, { count: number; resetAt: number }>();
-const MAX_ATTEMPTS = 10;
-const WINDOW_MS = 60 * 1000;
-
-function checkRateLimit(ip: string): boolean {
-  const now = Date.now();
-  const entry = loginAttempts.get(ip);
-  if (!entry || entry.resetAt < now) {
-    loginAttempts.set(ip, { count: 1, resetAt: now + WINDOW_MS });
-    return true;
-  }
-  if (entry.count >= MAX_ATTEMPTS) return false;
-  entry.count++;
-  return true;
-}
+const AUTH_MAX_ATTEMPTS = 10;
+const AUTH_WINDOW_MS = 60 * 1000;
 
 export const { handlers, auth, signIn, signOut } = NextAuth({
+  ...authConfig,
   providers: [
     Credentials({
       id: "employee-credentials",
@@ -63,7 +55,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
       },
       async authorize(credentials) {
         const ip = String(credentials._ip ?? "unknown");
-        if (!checkRateLimit(ip)) return null;
+        if (!(await checkRateLimit(`auth:${ip}`, AUTH_MAX_ATTEMPTS, AUTH_WINDOW_MS))) return null;
 
         const email = String(credentials.email ?? "")
           .toLowerCase()
@@ -78,6 +70,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         });
 
         if (!user?.passwordHash) return null;
+        if (!user.isActive) return null;
         if (!["ACTIVE", "TRIAL"].includes(user.tenant.status)) return null;
 
         const valid = await argon2.verify(user.passwordHash, password);
@@ -119,7 +112,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
       },
       async authorize(credentials) {
         const ip = String(credentials._ip ?? "unknown");
-        if (!checkRateLimit(ip)) return null;
+        if (!(await checkRateLimit(`auth:${ip}`, AUTH_MAX_ATTEMPTS, AUTH_WINDOW_MS))) return null;
 
         const email = String(credentials.email ?? "")
           .toLowerCase()
@@ -151,7 +144,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         return {
           id: admin.id,
           email: admin.email,
-          name: admin.email,
+          name: admin.email.split("@")[0] ?? admin.email,
           userType: "reseller",
           resellerId: admin.resellerId,
           roles: [],
@@ -161,16 +154,17 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
 
     Credentials({
       id: "customer-credentials",
-      name: "Bürger",
+      name: "Bürger (Mandant)",
       credentials: {
         email: { label: "E-Mail", type: "email" },
         password: { label: "Passwort", type: "password" },
+        totpCode: { label: "2FA-Code", type: "text" },
         tenantSlug: { label: "Mandant", type: "text" },
         _ip: { label: "_ip", type: "hidden" },
       },
       async authorize(credentials) {
         const ip = String(credentials._ip ?? "unknown");
-        if (!checkRateLimit(ip)) return null;
+        if (!(await checkRateLimit(`auth:${ip}`, AUTH_MAX_ATTEMPTS, AUTH_WINDOW_MS))) return null;
 
         const email = String(credentials.email ?? "")
           .toLowerCase()
@@ -192,6 +186,15 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         const valid = await argon2.verify(customer.passwordHash, password);
         if (!valid) return null;
 
+        if (customer.totpEnabled) {
+          const totpCode = String(credentials.totpCode ?? "");
+          if (!totpCode) return null;
+          const { TOTP } = await import("otpauth");
+          const totp = new TOTP({ secret: customer.totpSecret ?? "" });
+          const delta = totp.validate({ token: totpCode.replace(/\s/g, ""), window: 1 });
+          if (delta === null) return null;
+        }
+
         return {
           id: customer.id,
           email: customer.email,
@@ -202,11 +205,56 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         };
       },
     }),
+
+    // Globales Bürger-Postfach — mandantenübergreifend
+    Credentials({
+      id: "citizen-account-credentials",
+      name: "Bürger-Postfach",
+      credentials: {
+        email: { label: "E-Mail", type: "email" },
+        password: { label: "Passwort", type: "password" },
+        totpCode: { label: "2FA-Code", type: "text" },
+        _ip: { label: "_ip", type: "hidden" },
+      },
+      async authorize(credentials) {
+        const ip = String(credentials._ip ?? "unknown");
+        if (!(await checkRateLimit(`auth:${ip}`, AUTH_MAX_ATTEMPTS, AUTH_WINDOW_MS))) return null;
+
+        const email = String(credentials.email ?? "").toLowerCase().trim();
+        const password = String(credentials.password ?? "");
+        if (!email || !password) return null;
+
+        const ca = await prisma.citizenAccount.findUnique({ where: { email } });
+        if (!ca?.passwordHash) return null;
+
+        const valid = await argon2.verify(ca.passwordHash, password);
+        if (!valid) return null;
+
+        if (ca.totpEnabled) {
+          const totpCode = String(credentials.totpCode ?? "");
+          if (!totpCode) return null;
+          const { TOTP } = await import("otpauth");
+          const totp = new TOTP({ secret: ca.totpSecret ?? "" });
+          const delta = totp.validate({ token: totpCode.replace(/\s/g, ""), window: 1 });
+          if (delta === null) return null;
+        }
+
+        return {
+          id: ca.id,
+          email: ca.email,
+          name: `${ca.firstName} ${ca.lastName}`,
+          userType: "citizen",
+          citizenAccountId: ca.id,
+          roles: [],
+        };
+      },
+    }),
   ],
 
   session: { strategy: "jwt", maxAge: 8 * 60 * 60 },
 
   callbacks: {
+    ...authConfig.callbacks,
     jwt({ token, user }) {
       if (user) {
         const t = token as TrustelloJWT;
@@ -214,6 +262,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         t.userType = user.userType;
         t.tenantId = user.tenantId;
         t.resellerId = user.resellerId;
+        t.citizenAccountId = user.citizenAccountId;
         t.roles = user.roles ?? [];
       }
       return token;
@@ -224,14 +273,10 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
       session.user.userType = t.userType;
       session.user.tenantId = t.tenantId;
       session.user.resellerId = t.resellerId;
+      session.user.citizenAccountId = t.citizenAccountId;
       session.user.roles = t.roles;
       return session;
     },
-  },
-
-  pages: {
-    signIn: "/login",
-    error: "/login",
   },
 
   cookies: {

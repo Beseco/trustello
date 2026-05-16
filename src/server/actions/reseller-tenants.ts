@@ -1,0 +1,138 @@
+"use server";
+
+import { prisma } from "@/lib/db";
+import { requireReseller } from "@/lib/auth-helpers";
+import { createTenantKeyMaterial } from "@/lib/crypto/envelope";
+import { z } from "zod";
+import { revalidatePath } from "next/cache";
+
+const createTenantSchema = z.object({
+  name: z.string().min(2, "Mind. 2 Zeichen").max(100),
+  slug: z
+    .string()
+    .min(2)
+    .max(50)
+    .regex(/^[a-z0-9-]+$/, "Nur Kleinbuchstaben, Ziffern und Bindestriche"),
+  billingEmail: z.string().email("Ungültige E-Mail"),
+  planId: z.string().min(1, "Bitte Plan wählen"),
+  autoLoginDomains: z.string().optional(),
+  status: z.enum(["TRIAL", "ACTIVE"]),
+});
+
+export type CreateTenantInput = z.infer<typeof createTenantSchema>;
+
+export async function createTenant(data: CreateTenantInput): Promise<{ error?: string }> {
+  const session = await requireReseller();
+  const resellerId = session.user.resellerId!;
+
+  const parsed = createTenantSchema.safeParse(data);
+  if (!parsed.success) {
+    return { error: parsed.error.issues[0]?.message ?? "Ungültige Eingaben." };
+  }
+
+  const { name, slug, billingEmail, planId, autoLoginDomains, status } = parsed.data;
+
+  // Plan muss dem Reseller gehören
+  const plan = await prisma.plan.findFirst({ where: { id: planId, resellerId } });
+  if (!plan) return { error: "Plan nicht gefunden." };
+
+  const slugExists = await prisma.tenant.findUnique({ where: { slug } });
+  if (slugExists) return { error: "Dieser Slug ist bereits vergeben." };
+
+  const domains = autoLoginDomains
+    ? autoLoginDomains
+        .split(/[,\s]+/)
+        .map((d) => d.trim().toLowerCase())
+        .filter(Boolean)
+    : [];
+
+  const keyMaterial = createTenantKeyMaterial();
+
+  const [tenant, defaultTemplates] = await Promise.all([
+    prisma.tenant.create({
+      data: {
+        resellerId,
+        planId,
+        name,
+        slug,
+        billingEmail,
+        billingAddress: {},
+        autoLoginDomains: domains,
+        status,
+        trialEndsAt: status === "TRIAL" ? new Date(Date.now() + 30 * 24 * 60 * 60 * 1000) : null,
+        tenantMasterKey: keyMaterial.tenantMasterKey as unknown as Uint8Array<ArrayBuffer>,
+        tmkIv: keyMaterial.tmkIv as unknown as Uint8Array<ArrayBuffer>,
+        tmkAuthTag: keyMaterial.tmkAuthTag as unknown as Uint8Array<ArrayBuffer>,
+        settings: {
+          create: {},
+        },
+      },
+    }),
+    prisma.resellerDefaultTemplate.findMany({ where: { resellerId } }),
+  ]);
+
+  if (defaultTemplates.length > 0) {
+    await prisma.messageTemplate.createMany({
+      data: defaultTemplates.map((t) => ({
+        tenantId: tenant.id,
+        name: t.name,
+        subject: t.subject,
+        body: t.body,
+        scope: "GLOBAL" as const,
+      })),
+    });
+  }
+
+  revalidatePath("/reseller");
+  revalidatePath("/reseller/tenants");
+  return {};
+}
+
+const VALID_STATUSES = ["TRIAL", "ACTIVE", "SUSPENDED", "CANCELLED"] as const;
+type TenantStatus = (typeof VALID_STATUSES)[number];
+
+export async function updateTenantStatus(
+  tenantId: string,
+  status: TenantStatus,
+): Promise<{ error?: string }> {
+  const session = await requireReseller();
+  const resellerId = session.user.resellerId!;
+
+  const tenant = await prisma.tenant.findUnique({ where: { id: tenantId } });
+  if (!tenant || tenant.resellerId !== resellerId) return { error: "Mandant nicht gefunden" };
+  if (!VALID_STATUSES.includes(status)) return { error: "Ungültiger Status" };
+
+  await prisma.tenant.update({
+    where: { id: tenantId },
+    data: {
+      status,
+      trialEndsAt: status === "TRIAL" ? new Date(Date.now() + 30 * 24 * 60 * 60 * 1000) : undefined,
+    },
+  });
+
+  revalidatePath("/reseller/tenants");
+  revalidatePath(`/reseller/tenants/${tenantId}`);
+  return {};
+}
+
+export async function updateTenantPlan(
+  tenantId: string,
+  planId: string,
+): Promise<{ error?: string }> {
+  const session = await requireReseller();
+  const resellerId = session.user.resellerId!;
+
+  const [tenant, plan] = await Promise.all([
+    prisma.tenant.findUnique({ where: { id: tenantId }, select: { id: true, resellerId: true } }),
+    prisma.plan.findUnique({ where: { id: planId }, select: { id: true, resellerId: true } }),
+  ]);
+
+  if (!tenant || tenant.resellerId !== resellerId) return { error: "Mandant nicht gefunden." };
+  if (!plan || plan.resellerId !== resellerId) return { error: "Plan nicht gefunden." };
+
+  await prisma.tenant.update({ where: { id: tenantId }, data: { planId } });
+
+  revalidatePath("/reseller/tenants");
+  revalidatePath(`/reseller/tenants/${tenantId}`);
+  return {};
+}

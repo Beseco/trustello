@@ -62,7 +62,7 @@ export async function registerEmployee(data: unknown): Promise<RegisterEmployeeR
     await sendMail({
       to: email,
       subject: "Willkommen bei Trustello",
-      html: welcomeEmployeeTemplate(`${firstName} ${lastName}`),
+      html: welcomeEmployeeTemplate({ name: `${firstName} ${lastName}`, email }),
     });
   } catch {
     logger.warn({ userId: user.id }, "Welcome mail failed");

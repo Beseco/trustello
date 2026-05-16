@@ -7,11 +7,14 @@ export function getS3Client(): S3Client {
     const endpoint = process.env.S3_ENDPOINT;
     _s3Client = new S3Client({
       region: "auto",
-      ...(endpoint ? { endpoint } : {}),
+      ...(endpoint ? { endpoint, forcePathStyle: true } : {}),
       credentials: {
         accessKeyId: process.env.S3_ACCESS_KEY ?? "",
         secretAccessKey: process.env.S3_SECRET_KEY ?? "",
       },
+      // Disable automatic checksum calculation for streaming bodies
+      requestChecksumCalculation: "WHEN_REQUIRED",
+      responseChecksumValidation: "WHEN_REQUIRED",
     });
   }
   return _s3Client;

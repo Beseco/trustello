@@ -12,17 +12,21 @@ datasource db {
 // =====================================================
 
 model Reseller {
-  id           String          @id @default(cuid())
-  name         String
-  contactEmail String
-  logoUrl      String?
-  primaryColor String?
-  customDomain String?         @unique
-  plans        Plan[]
-  tenants      Tenant[]
-  admins       ResellerAdmin[]
-  createdAt    DateTime        @default(now())
-  updatedAt    DateTime        @updatedAt
+  id             String          @id @default(cuid())
+  name           String
+  contactEmail   String
+  logoUrl        String?
+  primaryColor   String?
+  customDomain   String?         @unique
+  plans          Plan[]
+  tenants        Tenant[]
+  admins         ResellerAdmin[]
+  smtpConfig          SmtpConfig?
+  sipgateConfig       SipgateConfig?
+  letterxpressConfig  LetterxpressConfig?
+  defaultTemplates    ResellerDefaultTemplate[]
+  createdAt      DateTime        @default(now())
+  updatedAt      DateTime        @updatedAt
 }
 
 model ResellerAdmin {
@@ -33,10 +37,11 @@ model ResellerAdmin {
   totpEnabled  Boolean           @default(false)
   resellerId   String
   reseller     Reseller          @relation(fields: [resellerId], references: [id], onDelete: Cascade)
-  role         ResellerAdminRole @default(ADMIN)
-  lastLoginAt  DateTime?
-  createdAt    DateTime          @default(now())
-  updatedAt    DateTime          @updatedAt
+  role                ResellerAdminRole    @default(ADMIN)
+  lastLoginAt         DateTime?
+  passwordResetTokens PasswordResetToken[]
+  createdAt           DateTime             @default(now())
+  updatedAt           DateTime             @updatedAt
 }
 
 enum ResellerAdminRole {
@@ -96,13 +101,17 @@ model Tenant {
   createdAt        DateTime        @default(now())
   updatedAt        DateTime        @updatedAt
 
-  organisationUnits OrganisationUnit[]
-  users             User[]
-  customers         Customer[]
-  messages          Message[]
-  apiKeys           ApiKey[]
-  importJobs        ImportJob[]
-  settings          TenantSettings?
+  organisationUnits    OrganisationUnit[]
+  users                User[]
+  customers            Customer[]
+  messages             Message[]
+  apiKeys              ApiKey[]
+  importJobs           ImportJob[]
+  settings             TenantSettings?
+  smtpConfig           SmtpConfig?
+  messageTemplates     MessageTemplate[]
+  smsUsage             SmsUsage[]
+  pinLetterTokens      PinLetterToken[]
 }
 
 enum TenantStatus {
@@ -124,7 +133,113 @@ model TenantSettings {
   retentionDaysOverride     Int?
   imprintHtml               String?
   privacyPolicyHtml         String?
+  signatureTemplate         String?
   updatedAt                 DateTime      @updatedAt
+}
+
+// =====================================================
+// SMTP-KONFIGURATION
+// Gilt entweder für einen Reseller (Zentralkonfiguration) ODER für einen Tenant
+// (eigene Konfiguration, überschreibt Reseller-Config).
+// Passwort wird mit MASTER_KEY verschlüsselt gespeichert (AES-256-GCM).
+// =====================================================
+
+model SmtpConfig {
+  id          String    @id @default(cuid())
+  // Genau eines der beiden Felder ist gesetzt
+  resellerId  String?   @unique
+  reseller    Reseller? @relation(fields: [resellerId], references: [id], onDelete: Cascade)
+  tenantId    String?   @unique
+  tenant      Tenant?   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  host        String
+  port        Int       @default(587)
+  secure      Boolean   @default(false)
+  user        String?
+  // Verschlüsseltes SMTP-Passwort (MASTER_KEY → AES-256-GCM)
+  passwordEnc Bytes?
+  passwordIv  Bytes?
+  passwordTag Bytes?
+  fromEmail   String
+  fromName    String?
+  updatedAt   DateTime  @updatedAt
+}
+
+model SipgateConfig {
+  id         String   @id @default(cuid())
+  resellerId String   @unique
+  reseller   Reseller @relation(fields: [resellerId], references: [id], onDelete: Cascade)
+
+  tokenId    String
+  // Token verschlüsselt (MASTER_KEY → AES-256-GCM)
+  tokenEnc   Bytes
+  tokenIv    Bytes
+  tokenTag   Bytes
+  smsId      String   @default("s0")
+  updatedAt  DateTime @updatedAt
+}
+
+model SmsUsage {
+  id          String   @id @default(cuid())
+  customerId  String
+  customer    Customer @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  tenantId    String
+  tenant      Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  resellerId  String   // denormalisiert für schnelle Reseller-Abfragen
+  month       Int      // YYYYMM, z.B. 202601
+  count       Int      @default(0)
+  notified80  Boolean  @default(false)
+  notified90  Boolean  @default(false)
+  notified100 Boolean  @default(false)
+  updatedAt   DateTime @updatedAt
+
+  @@unique([customerId, month])
+  @@index([resellerId, month])
+}
+
+model LetterxpressConfig {
+  id         String   @id @default(cuid())
+  resellerId String   @unique
+  reseller   Reseller @relation(fields: [resellerId], references: [id], onDelete: Cascade)
+
+  username   String
+  // API-Key verschlüsselt (MASTER_KEY → AES-256-GCM)
+  apiKeyEnc  Bytes
+  apiKeyIv   Bytes
+  apiKeyTag  Bytes
+  updatedAt  DateTime @updatedAt
+}
+
+model ResellerDefaultTemplate {
+  id         String   @id @default(cuid())
+  resellerId String
+  reseller   Reseller @relation(fields: [resellerId], references: [id], onDelete: Cascade)
+  name       String
+  subject    String?
+  body       String
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@index([resellerId])
+}
+
+model PinLetterToken {
+  id             String    @id @default(cuid())
+  customerId     String
+  customer       Customer  @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  tenantId       String
+  tenant         Tenant    @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  pinHash        String    // argon2id-Hash des 6-stelligen PIN
+  qrToken        String    @unique @default(cuid()) // Token für QR-URL (einmal verwendbar)
+  sentAt         DateTime  @default(now())
+  expiresAt      DateTime  // 30 Tage
+  usedAt         DateTime?
+  supersededAt   DateTime? // gesetzt wenn ein neuerer Brief versendet wird
+  letterxpressId String?   // Job-ID von LetterXpress
+  attempts       Int       @default(0) // max. 5 Fehlversuche
+
+  @@index([customerId])
+  @@index([qrToken])
 }
 
 // =====================================================
@@ -142,6 +257,8 @@ model OrganisationUnit {
   description String?
   members     UserOnOU[]
   customers   CustomerOnOU[]
+  templates   MessageTemplate[]
+  messages    Message[]
   createdAt   DateTime           @default(now())
   updatedAt   DateTime           @updatedAt
 }
@@ -173,17 +290,22 @@ model User {
   firstName    String
   lastName     String
   email        String       @unique
+  phone        String?
+  position     String?
   passwordHash String?
   totpSecret   String?
   totpEnabled  Boolean      @default(false)
   roles        UserRole[]
+  isActive     Boolean      @default(true)
   ous          UserOnOU[]
   lastLoginAt  DateTime?
-  sentMessages Message[]    @relation("MessageSender")
-  ownedCustomers Customer[] @relation("CustomerOwner")
-  customerNotes CustomerNote[]
-  createdAt    DateTime     @default(now())
-  updatedAt    DateTime     @updatedAt
+  sentMessages        Message[]            @relation("MessageSender")
+  ownedCustomers      Customer[]           @relation("CustomerOwner")
+  customerNotes       CustomerNote[]
+  passwordResetTokens PasswordResetToken[]
+  messageTemplates    MessageTemplate[]
+  createdAt           DateTime             @default(now())
+  updatedAt           DateTime             @updatedAt
 }
 
 enum UserRole {
@@ -198,9 +320,11 @@ enum UserRole {
 // =====================================================
 
 model Customer {
-  id              String             @id @default(cuid())
-  tenantId        String
-  tenant          Tenant             @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  id               String          @id @default(cuid())
+  tenantId         String
+  tenant           Tenant          @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  citizenAccountId String?
+  citizenAccount   CitizenAccount? @relation(fields: [citizenAccountId], references: [id])
   salutation      String?
   firstName       String
   lastName        String
@@ -222,9 +346,12 @@ model Customer {
   totpSecret      String?
   totpEnabled     Boolean            @default(false)
   publicKey       Bytes?
+  smsMonthlyQuota Int?               // null = kein Limit; Anzahl SMS pro Monat
   ous             CustomerOnOU[]
   receivedMessages Message[]         @relation("MessageRecipient")
   notes           CustomerNote[]
+  smsUsage        SmsUsage[]
+  pinLetterTokens PinLetterToken[]
   createdAt       DateTime           @default(now())
   updatedAt       DateTime           @updatedAt
 
@@ -288,6 +415,12 @@ model Message {
   sender             User          @relation("MessageSender", fields: [senderId], references: [id])
   recipientId        String
   recipient          Customer      @relation("MessageRecipient", fields: [recipientId], references: [id])
+  ouId               String?
+  ou                 OrganisationUnit? @relation(fields: [ouId], references: [id])
+  senderIsAnonymous  Boolean       @default(false)
+  vaultMessageKey    Bytes?
+  vaultMessageKeyIv  Bytes?
+  vaultMessageKeyAuthTag Bytes?
   subjectIsEncrypted Boolean       @default(false)
   subjectPlain       String?
   subjectCiphertext  Bytes?
@@ -318,6 +451,7 @@ model Message {
   legalHold          Boolean       @default(false)
   attachments        Attachment[]
   events             MessageEvent[]
+  magicLinkTokens    MagicLinkToken[]
 }
 
 enum SecurityLevel {
@@ -428,4 +562,114 @@ enum ImportStatus {
   RUNNING
   COMPLETED
   FAILED
+}
+
+model PasswordResetToken {
+  id              String         @id @default(cuid())
+  userId          String?
+  user            User?          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  resellerAdminId String?
+  resellerAdmin   ResellerAdmin? @relation(fields: [resellerAdminId], references: [id], onDelete: Cascade)
+  tokenHash       String         @unique
+  expiresAt       DateTime
+  usedAt          DateTime?
+  createdAt       DateTime       @default(now())
+
+  @@index([tokenHash])
+}
+
+enum TemplateScope {
+  GLOBAL
+  OU
+  USER
+}
+
+model MessageTemplate {
+  id          String        @id @default(cuid())
+  tenantId    String
+  tenant      Tenant        @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  createdById String?
+  createdBy   User?         @relation(fields: [createdById], references: [id], onDelete: SetNull)
+  scope       TemplateScope @default(GLOBAL)
+  ouId        String?
+  ou          OrganisationUnit? @relation(fields: [ouId], references: [id], onDelete: Cascade)
+  name        String
+  subject     String?
+  body        String
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+
+  @@index([tenantId, scope])
+  @@index([ouId])
+}
+
+model MagicLinkToken {
+  id             String    @id @default(cuid())
+  token          String    @unique
+  messageId      String
+  message        Message   @relation(fields: [messageId], references: [id], onDelete: Cascade)
+  recipientEmail String
+  expiresAt      DateTime
+  usedAt         DateTime?
+  createdAt      DateTime  @default(now())
+
+  @@index([token])
+  @@index([messageId])
+}
+
+// =====================================================
+// CITIZEN ACCOUNT (mandantenübergreifend)
+// =====================================================
+
+model CitizenAccount {
+  id              String     @id @default(cuid())
+  email           String     @unique
+  firstName       String
+  lastName        String
+  passwordHash    String?
+  totpSecret      String?
+  totpEnabled     Boolean    @default(false)
+
+  // Vault-Verschlüsselung (FTAPI-like Customer Master Key)
+  vaultSalt             Bytes?   // Salt für scrypt-KDF
+  vaultKey              Bytes?   // CMK verschlüsselt mit abgeleitetem Schlüssel (citizen-seitig)
+  vaultKeyIv            Bytes?
+  vaultKeyAuthTag       Bytes?
+  vaultKeyMaster        Bytes?   // CMK verschlüsselt mit MASTER_KEY (server-seitig für Versand)
+  vaultKeyMasterIv      Bytes?
+  vaultKeyMasterAuthTag Bytes?
+  vaultEnabled    Boolean    @default(false)
+
+  customers           Customer[]
+  inviteTokens        CitizenInviteToken[]
+  passwordResetTokens CitizenPasswordResetToken[]
+  createdAt           DateTime   @default(now())
+  updatedAt           DateTime   @updatedAt
+}
+
+model CitizenInviteToken {
+  id               String          @id @default(cuid())
+  token            String          @unique
+  email            String
+  customerId       String
+  citizenAccountId String?
+  citizenAccount   CitizenAccount? @relation(fields: [citizenAccountId], references: [id], onDelete: Cascade)
+  expiresAt        DateTime
+  usedAt           DateTime?
+  createdAt        DateTime        @default(now())
+
+  @@index([token])
+  @@index([email])
+}
+
+model CitizenPasswordResetToken {
+  id               String         @id @default(cuid())
+  token            String         @unique
+  citizenAccountId String
+  citizenAccount   CitizenAccount @relation(fields: [citizenAccountId], references: [id], onDelete: Cascade)
+  expiresAt        DateTime
+  usedAt           DateTime?
+  createdAt        DateTime       @default(now())
+
+  @@index([token])
 }

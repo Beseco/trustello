@@ -268,6 +268,27 @@ async function main() {
   });
 
   console.log("Customers:", customer1.email, customer2.email);
+
+  // 9. Reseller Standard-Vorlagen
+  await prisma.resellerDefaultTemplate.createMany({
+    data: [
+      {
+        resellerId: reseller.id,
+        name: "Zugangsdaten zusenden",
+        subject: "Ihre Zugangsdaten",
+        body: `<p>Sehr geehrte/r [Vorname] [Nachname],</p>
+<p>hiermit erhalten Sie Ihre Zugangsdaten für unser Portal:</p>
+<p><strong>Benutzername:</strong> [Benutzername / E-Mail-Adresse]<br>
+<strong>Passwort:</strong> [Temporäres Passwort]</p>
+<p>Bitte melden Sie sich unter folgendem Link an und ändern Sie Ihr Passwort bei der ersten Anmeldung:</p>
+<p>[Link zum Portal]</p>
+<p>Sollten Sie Fragen haben, stehen wir Ihnen gerne zur Verfügung.</p>
+<p>Mit freundlichen Grüßen</p>`,
+      },
+    ],
+    skipDuplicates: true,
+  });
+
   console.log("\nSeed completed successfully!");
   console.log("\nTest-Zugangsdaten:");
   console.log("  Tenant-Admin:  admin@stadt-freising-demo.de / Test1234!");

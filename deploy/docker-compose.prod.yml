@@ -10,9 +10,12 @@ services:
     env_file:
       - ../.env.production
     depends_on:
-      - postgres
-      - clamav
-      - redis
+      postgres:
+        condition: service_healthy
+      clamav:
+        condition: service_started
+      redis:
+        condition: service_started
 
   postgres:
     image: postgres:16-alpine
@@ -24,15 +27,27 @@ services:
     volumes:
       - pgdata:/var/lib/postgresql/data
       - ./postgres-backup:/backup
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U trustello -d trustello_prod"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
   clamav:
     image: clamav/clamav:stable
+    platform: linux/amd64
     restart: unless-stopped
+    volumes:
+      - clamav_db:/var/lib/clamav
 
   redis:
     image: redis:7-alpine
     restart: unless-stopped
     command: redis-server --requirepass ${REDIS_PASSWORD}
+    volumes:
+      - redisdata:/data
 
 volumes:
   pgdata:
+  clamav_db:
+  redisdata:
