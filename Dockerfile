@@ -28,7 +28,7 @@ COPY --from=deps /app/node_modules ./node_modules
 COPY --from=builder /app/prisma ./prisma
 
 # Generate Prisma client in runner stage
-RUN node node_modules/.bin/prisma generate
+RUN node node_modules/prisma/build/index.js generate
 
 COPY docker-entrypoint.sh ./docker-entrypoint.sh
 RUN chmod +x docker-entrypoint.sh && \
