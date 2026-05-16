@@ -23,16 +23,18 @@ COPY --from=builder /app/public ./public
 COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
 COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
 
-# Full node_modules + prisma schema for migrations
+# Full node_modules + prisma schema for migrations & seed
 COPY --from=deps /app/node_modules ./node_modules
 COPY --from=builder /app/prisma ./prisma
+COPY --from=builder /app/src ./src
+COPY --from=builder /app/tsconfig.json ./tsconfig.json
 
 # Generate Prisma client in runner stage
 RUN node node_modules/prisma/build/index.js generate
 
 COPY docker-entrypoint.sh ./docker-entrypoint.sh
 RUN chmod +x docker-entrypoint.sh && \
-    chown -R nextjs:nodejs /app/node_modules /app/prisma
+    chown -R nextjs:nodejs /app/node_modules /app/prisma /app/src
 
 USER nextjs
 EXPOSE 3000
