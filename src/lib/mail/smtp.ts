@@ -34,7 +34,9 @@ export function encryptSmtpPassword(password: string): {
   };
 }
 
-export function decryptSmtpPassword(config: Pick<SmtpConfig, "passwordEnc" | "passwordIv" | "passwordTag">): string | null {
+export function decryptSmtpPassword(
+  config: Pick<SmtpConfig, "passwordEnc" | "passwordIv" | "passwordTag">,
+): string | null {
   if (!config.passwordEnc || !config.passwordIv || !config.passwordTag) return null;
   try {
     return decrypt(
@@ -69,19 +71,24 @@ function buildTransporter(config: SmtpConfig, source: "tenant" | "reseller"): Tr
     auth: config.user ? { user: config.user, pass: password ?? undefined } : undefined,
   });
 
-  const from = config.fromName
-    ? `"${config.fromName}" <${config.fromEmail}>`
-    : config.fromEmail;
+  const from = config.fromName ? `"${config.fromName}" <${config.fromEmail}>` : config.fromEmail;
 
   return { transporter, from, source };
 }
 
 function buildEnvTransporter(): TransporterResult {
+  const host = process.env.SMTP_HOST ?? "localhost";
+  const port = Number(process.env.SMTP_PORT ?? 1025);
+  const user = process.env.SMTP_USER;
+  const pass = process.env.SMTP_PASSWORD;
+  const secure = port === 465;
+
   const transporter = nodemailer.createTransport({
-    host: process.env.SMTP_HOST ?? "localhost",
-    port: Number(process.env.SMTP_PORT ?? 1025),
-    secure: false,
-    ignoreTLS: true,
+    host,
+    port,
+    secure,
+    auth: user && pass ? { user, pass } : undefined,
+    ignoreTLS: !user,
   });
   const from = process.env.SMTP_FROM ?? "noreply@trustello.local";
   return { transporter, from, source: "env" };
