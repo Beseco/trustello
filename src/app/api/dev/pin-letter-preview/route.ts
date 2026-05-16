@@ -32,7 +32,7 @@ export async function GET() {
     expiresAt: addDays(new Date(), 30),
   });
 
-  return new NextResponse(pdfBuffer, {
+  return new NextResponse(pdfBuffer as unknown as BodyInit, {
     headers: {
       "Content-Type": "application/pdf",
       "Content-Disposition": 'inline; filename="pin-brief-vorschau.pdf"',
