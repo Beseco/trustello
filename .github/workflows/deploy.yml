@@ -24,6 +24,9 @@ jobs:
             echo "=== Pulling latest code ==="
             git pull origin main
 
+            echo "=== Ensuring deploy/.env symlink ==="
+            ln -sf /opt/trustello/.env.production /opt/trustello/deploy/.env
+
             echo "=== Building Docker image ==="
             docker compose -f deploy/docker-compose.prod.yml build app
 
