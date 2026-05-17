@@ -32,6 +32,21 @@ const securityHeaders = [
     : []),
 ];
 
+// Erlaubte Ursprünge für das Outlook Add-in (CORS)
+const addinOrigins = [
+  "https://addin.trustello.de",
+  // Lokale Entwicklung des Add-ins
+  "http://localhost:3001",
+  "https://localhost:3001",
+];
+
+const addinCorsHeaders = [
+  { key: "Access-Control-Allow-Origin", value: addinOrigins.join(",") },
+  { key: "Access-Control-Allow-Methods", value: "GET,POST,OPTIONS" },
+  { key: "Access-Control-Allow-Headers", value: "Authorization,Content-Type" },
+  { key: "Access-Control-Max-Age", value: "86400" },
+];
+
 const nextConfig: NextConfig = {
   output: "standalone",
   experimental: {
@@ -53,6 +68,11 @@ const nextConfig: NextConfig = {
     {
       source: "/(.*)",
       headers: securityHeaders,
+    },
+    // CORS für das Outlook Add-in
+    {
+      source: "/api/v1/:path*",
+      headers: addinCorsHeaders,
     },
   ],
 };

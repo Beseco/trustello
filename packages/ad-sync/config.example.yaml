@@ -1,0 +1,22 @@
+trustello:
+  apiUrl: https://app.trustello.de
+  apiKey: tk_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+
+ldap:
+  url: ldap://dc01.gemeinde.local
+  bindDN: CN=trustello-sync,OU=Dienste,DC=gemeinde,DC=local
+  bindPassword: geheim
+  baseDN: OU=Mitarbeiter,DC=gemeinde,DC=local
+  # Nur aktive User (kein UF_ACCOUNTDISABLE-Bit gesetzt)
+  userFilter: "(&(objectClass=user)(!(userAccountControl:1.2.840.113556.1.4.803:=2)))"
+  tlsRejectUnauthorized: true
+
+sync:
+  intervalMinutes: 15
+  dryRun: false
+  defaultRole: EMPLOYEE
+  # Optional: AD-Gruppen-DN → Trustello OU-Name
+  groupToOuMapping:
+    "CN=Bauamt,OU=Gruppen,DC=gemeinde,DC=local": "Bauamt"
+    "CN=Sozialamt,OU=Gruppen,DC=gemeinde,DC=local": "Sozialamt"
+    "CN=Einwohnermeldeamt,OU=Gruppen,DC=gemeinde,DC=local": "Einwohnermeldeamt"

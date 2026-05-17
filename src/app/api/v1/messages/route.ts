@@ -10,8 +10,13 @@ import {
 import { sendMail } from "@/lib/mail/send";
 import { messageNotificationTemplate } from "@/lib/mail/templates/message-notification";
 import { logger } from "@/lib/logger";
+import { handleOptions } from "@/lib/cors";
 
 export const dynamic = "force-dynamic";
+
+export function OPTIONS(request: NextRequest) {
+  return handleOptions(request);
+}
 
 // GET /api/v1/messages — Scope: messages:read
 // Gibt die gesendeten Nachrichten des Mandanten zurück (ohne Entschlüsselung).

@@ -1,0 +1,128 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/teams/vDevPreview/MicrosoftTeams.schema.json",
+  "manifestVersion": "devPreview",
+  "version": "1.0.0",
+  "id": "00000000-0000-0000-0000-000000000001",
+  "name": {
+    "short": "Trustello",
+    "full": "Trustello — Sicherer Nachrichtenversand"
+  },
+  "description": {
+    "short": "Sicher senden mit Trustello",
+    "full": "Versenden Sie Nachrichten sicher und verschlüsselt an Bürger direkt aus Outlook heraus."
+  },
+  "icons": {
+    "outline": "public/assets/icon-32.png",
+    "color": "public/assets/icon-80.png"
+  },
+  "accentColor": "#1e40af",
+  "developer": {
+    "name": "Beseco",
+    "websiteUrl": "https://trustello.de",
+    "privacyUrl": "https://trustello.de/datenschutz",
+    "termsOfUseUrl": "https://trustello.de/agb"
+  },
+  "localizationInfo": {
+    "defaultLanguageTag": "de-DE"
+  },
+  "authorization": {
+    "permissions": {
+      "resourceSpecific": []
+    }
+  },
+  "extensions": [
+    {
+      "requirements": {
+        "scopes": ["mail"],
+        "capabilities": [
+          {
+            "name": "Mailbox",
+            "minVersion": "1.3"
+          }
+        ]
+      },
+      "runtimes": [
+        {
+          "requirements": {
+            "capabilities": [
+              {
+                "name": "Mailbox",
+                "minVersion": "1.3"
+              }
+            ]
+          },
+          "id": "TaskPaneRuntime",
+          "type": "general",
+          "code": {
+            "page": "https://addin.trustello.de/taskpane.html"
+          },
+          "lifetime": "short",
+          "actions": [
+            {
+              "id": "TaskPaneRuntimeShow",
+              "type": "openPage",
+              "pinnable": false,
+              "view": "dashboard"
+            }
+          ]
+        }
+      ],
+      "ribbons": [
+        {
+          "contexts": ["mailCompose"],
+          "tabs": [
+            {
+              "builtInTabId": "TabDefault",
+              "groups": [
+                {
+                  "id": "TrustelloGroup",
+                  "label": "Trustello",
+                  "icons": [
+                    {
+                      "size": 16,
+                      "url": "https://addin.trustello.de/assets/icon-16.png"
+                    },
+                    {
+                      "size": 32,
+                      "url": "https://addin.trustello.de/assets/icon-32.png"
+                    },
+                    {
+                      "size": 80,
+                      "url": "https://addin.trustello.de/assets/icon-80.png"
+                    }
+                  ],
+                  "controls": [
+                    {
+                      "id": "OpenTaskpaneButton",
+                      "type": "button",
+                      "label": "Sicher senden",
+                      "icons": [
+                        {
+                          "size": 16,
+                          "url": "https://addin.trustello.de/assets/icon-16.png"
+                        },
+                        {
+                          "size": 32,
+                          "url": "https://addin.trustello.de/assets/icon-32.png"
+                        },
+                        {
+                          "size": 80,
+                          "url": "https://addin.trustello.de/assets/icon-80.png"
+                        }
+                      ],
+                      "supertip": {
+                        "title": "Sicher senden",
+                        "description": "Nachricht verschlüsselt über Trustello versenden"
+                      },
+                      "actionId": "TaskPaneRuntimeShow"
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

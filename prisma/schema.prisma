@@ -106,6 +106,7 @@ model Tenant {
   customers            Customer[]
   messages             Message[]
   apiKeys              ApiKey[]
+  scimToken            ScimToken?
   importJobs           ImportJob[]
   settings             TenantSettings?
   smtpConfig           SmtpConfig?
@@ -297,6 +298,7 @@ model User {
   totpEnabled  Boolean      @default(false)
   roles        UserRole[]
   isActive     Boolean      @default(true)
+  entraId      String?      @unique // Azure AD / Entra ID Object-ID (für SCIM-Sync)
   ous          UserOnOU[]
   lastLoginAt  DateTime?
   sentMessages        Message[]            @relation("MessageSender")
@@ -537,6 +539,16 @@ model ApiKey {
   lastUsedAt DateTime?
   expiresAt  DateTime?
   createdAt  DateTime  @default(now())
+}
+
+// SCIM 2.0 Bearer-Token für Entra ID / Azure AD Provisioning
+model ScimToken {
+  id         String    @id @default(cuid())
+  tenantId   String    @unique
+  tenant     Tenant    @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  tokenHash  String    // SHA-256 des Bearer-Tokens
+  createdAt  DateTime  @default(now())
+  lastUsedAt DateTime?
 }
 
 model ImportJob {

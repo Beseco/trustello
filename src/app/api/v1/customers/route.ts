@@ -2,8 +2,13 @@ import { type NextRequest } from "next/server";
 import { prisma } from "@/lib/db";
 import { validateApiKey, requireScope, handleApiAuthError } from "@/lib/api-auth";
 import { z } from "zod";
+import { handleOptions } from "@/lib/cors";
 
 export const dynamic = "force-dynamic";
+
+export function OPTIONS(request: NextRequest) {
+  return handleOptions(request);
+}
 
 // GET /api/v1/customers — Scope: customers:read
 export async function GET(request: NextRequest) {

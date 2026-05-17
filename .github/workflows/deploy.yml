@@ -33,6 +33,16 @@ jobs:
             echo "=== Restarting app (migrations run automatically on start) ==="
             docker compose -f deploy/docker-compose.prod.yml up -d app
 
+            echo "=== Building Outlook Add-in ==="
+            cd /opt/trustello
+            npm install -g pnpm --silent
+            pnpm install --frozen-lockfile --filter @trustello/outlook-addin
+            pnpm --filter @trustello/outlook-addin build
+            mkdir -p /opt/trustello/addin
+            rsync -a --delete packages/outlook-addin/dist/ /opt/trustello/addin/dist/
+            rsync -a packages/outlook-addin/public/ /opt/trustello/addin/dist/
+            echo "Outlook Add-in deployed to /opt/trustello/addin/dist/"
+
             echo "=== Health check ==="
             sleep 5
             curl -sf http://localhost:3000/api/health | grep '"ok":true'

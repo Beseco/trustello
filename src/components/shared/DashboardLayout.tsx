@@ -45,6 +45,7 @@ const adminNav: NavItem[] = [
   { href: "/admin/api-keys", label: "API-Keys", icon: <KeyRound className="h-4 w-4" />, section: "Konfiguration" },
   { href: "/admin/settings/templates", label: "Vorlagen", icon: <FileText className="h-4 w-4" /> },
   { href: "/admin/settings/smtp", label: "E-Mail (SMTP)", icon: <Mail className="h-4 w-4" /> },
+  { href: "/admin/settings/scim", label: "Entra ID (SCIM)", icon: <Users className="h-4 w-4" /> },
   { href: "/admin/settings", label: "Einstellungen", icon: <Settings className="h-4 w-4" /> },
 ];
 
