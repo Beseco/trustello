@@ -82,9 +82,7 @@ export async function searchUsers(config: Config): Promise<LdapUser[]> {
         }
 
         res.on("searchEntry", (entry) => {
-          const guidBuf = entry.attributes.find(
-            (a) => a.type.toLowerCase() === "objectguid",
-          );
+          const guidBuf = entry.attributes.find((a) => a.type.toLowerCase() === "objectguid");
           const guid =
             guidBuf && Buffer.isBuffer(guidBuf.values[0])
               ? bufferToGuid(guidBuf.values[0] as Buffer)

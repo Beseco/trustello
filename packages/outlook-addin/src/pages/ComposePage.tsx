@@ -58,15 +58,16 @@ export function ComposePage({ client, tenantName }: Props) {
       const stagingKeys: string[] = [];
       for (const attachment of composeData.attachments) {
         const content = await new Promise<Office.AttachmentContent>((resolve, reject) => {
-          (
-            Office.context.mailbox.item as Office.MessageCompose
-          ).getAttachmentContentAsync(attachment.id, (result) => {
-            if (result.status === Office.AsyncResultStatus.Succeeded) {
-              resolve(result.value);
-            } else {
-              reject(new Error(result.error.message));
-            }
-          });
+          (Office.context.mailbox.item as Office.MessageCompose).getAttachmentContentAsync(
+            attachment.id,
+            (result) => {
+              if (result.status === Office.AsyncResultStatus.Succeeded) {
+                resolve(result.value);
+              } else {
+                reject(new Error(result.error.message));
+              }
+            },
+          );
         });
 
         const staged = await client.stageAttachment(
@@ -83,9 +84,7 @@ export function ComposePage({ client, tenantName }: Props) {
 
       // Nachricht senden — Body je nach Sicherheitsstufe
       const body =
-        securityLevel === "LEVEL_1"
-          ? composeData.body
-          : `Neue sichere Nachricht von ${tenantName}`;
+        securityLevel === "LEVEL_1" ? composeData.body : `Neue sichere Nachricht von ${tenantName}`;
 
       const result = await client.sendMessage({
         recipientId: recipient.id,
@@ -140,7 +139,12 @@ export function ComposePage({ client, tenantName }: Props) {
         <Text size={200} style={{ color: "#6b7280" }}>
           Sie können diesen Outlook-Entwurf jetzt verwerfen.
         </Text>
-        <Button onClick={() => { setSendState("idle"); setSentMessageId(null); }}>
+        <Button
+          onClick={() => {
+            setSendState("idle");
+            setSentMessageId(null);
+          }}
+        >
           Neue Nachricht
         </Button>
       </div>
@@ -206,7 +210,7 @@ export function ComposePage({ client, tenantName }: Props) {
         </Field>
       )}
 
-      {(sendState === "error" && errorMessage) && (
+      {sendState === "error" && errorMessage && (
         <MessageBar intent="error">
           <MessageBarBody>{errorMessage}</MessageBarBody>
         </MessageBar>

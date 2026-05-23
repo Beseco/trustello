@@ -29,20 +29,45 @@ type NavItem = {
 };
 
 const employeeNav: NavItem[] = [
-  { href: "/inbox", label: "Nachrichten", icon: <Inbox className="h-4 w-4" />, section: "Nachrichten" },
+  {
+    href: "/inbox",
+    label: "Nachrichten",
+    icon: <Inbox className="h-4 w-4" />,
+    section: "Nachrichten",
+  },
   { href: "/compose", label: "Neue Nachricht", icon: <PenSquare className="h-4 w-4" /> },
-  { href: "/customers", label: "Kunden", icon: <ContactRound className="h-4 w-4" />, section: "Verwaltung" },
+  {
+    href: "/customers",
+    label: "Kunden",
+    icon: <ContactRound className="h-4 w-4" />,
+    section: "Verwaltung",
+  },
   { href: "/settings/templates", label: "Meine Vorlagen", icon: <FileText className="h-4 w-4" /> },
   { href: "/settings", label: "Mein Konto", icon: <Settings className="h-4 w-4" /> },
 ];
 
 const adminNav: NavItem[] = [
-  { href: "/admin", label: "Übersicht", icon: <LayoutDashboard className="h-4 w-4" />, section: "Dashboard" },
-  { href: "/admin/users", label: "Benutzer", icon: <Users className="h-4 w-4" />, section: "Verwaltung" },
+  {
+    href: "/admin",
+    label: "Übersicht",
+    icon: <LayoutDashboard className="h-4 w-4" />,
+    section: "Dashboard",
+  },
+  {
+    href: "/admin/users",
+    label: "Benutzer",
+    icon: <Users className="h-4 w-4" />,
+    section: "Verwaltung",
+  },
   { href: "/admin/customers", label: "Kunden", icon: <ContactRound className="h-4 w-4" /> },
   { href: "/admin/organisation", label: "Organisation", icon: <Building2 className="h-4 w-4" /> },
   { href: "/admin/audit", label: "Audit-Log", icon: <ClipboardList className="h-4 w-4" /> },
-  { href: "/admin/api-keys", label: "API-Keys", icon: <KeyRound className="h-4 w-4" />, section: "Konfiguration" },
+  {
+    href: "/admin/api-keys",
+    label: "API-Keys",
+    icon: <KeyRound className="h-4 w-4" />,
+    section: "Konfiguration",
+  },
   { href: "/admin/settings/templates", label: "Vorlagen", icon: <FileText className="h-4 w-4" /> },
   { href: "/admin/settings/smtp", label: "E-Mail (SMTP)", icon: <Mail className="h-4 w-4" /> },
   { href: "/admin/settings/scim", label: "Entra ID (SCIM)", icon: <Users className="h-4 w-4" /> },
@@ -50,13 +75,40 @@ const adminNav: NavItem[] = [
 ];
 
 const resellerNav: NavItem[] = [
-  { href: "/reseller", label: "Dashboard", icon: <LayoutDashboard className="h-4 w-4" />, section: "Übersicht" },
-  { href: "/reseller/tenants", label: "Mandanten", icon: <Building2 className="h-4 w-4" />, section: "Verwaltung" },
+  {
+    href: "/reseller",
+    label: "Dashboard",
+    icon: <LayoutDashboard className="h-4 w-4" />,
+    section: "Übersicht",
+  },
+  {
+    href: "/reseller/tenants",
+    label: "Mandanten",
+    icon: <Building2 className="h-4 w-4" />,
+    section: "Verwaltung",
+  },
   { href: "/reseller/plans", label: "Plans", icon: <Settings className="h-4 w-4" /> },
-  { href: "/reseller/settings/smtp", label: "E-Mail (SMTP)", icon: <Mail className="h-4 w-4" />, section: "Konfiguration" },
-  { href: "/reseller/settings/sipgate", label: "SMS (sipgate)", icon: <MessageSquare className="h-4 w-4" /> },
-  { href: "/reseller/settings/letterxpress", label: "PIN-Brief", icon: <MailOpen className="h-4 w-4" /> },
-  { href: "/reseller/settings/default-templates", label: "Standard-Vorlagen", icon: <FileText className="h-4 w-4" /> },
+  {
+    href: "/reseller/settings/smtp",
+    label: "E-Mail (SMTP)",
+    icon: <Mail className="h-4 w-4" />,
+    section: "Konfiguration",
+  },
+  {
+    href: "/reseller/settings/sipgate",
+    label: "SMS (sipgate)",
+    icon: <MessageSquare className="h-4 w-4" />,
+  },
+  {
+    href: "/reseller/settings/letterxpress",
+    label: "PIN-Brief",
+    icon: <MailOpen className="h-4 w-4" />,
+  },
+  {
+    href: "/reseller/settings/default-templates",
+    label: "Standard-Vorlagen",
+    icon: <FileText className="h-4 w-4" />,
+  },
   { href: "/reseller/settings", label: "Mein Konto", icon: <Settings className="h-4 w-4" /> },
 ];
 
@@ -111,10 +163,7 @@ export function DashboardLayout({
   return (
     <div className="flex h-screen overflow-hidden bg-background">
       {/* Sidebar — dark navy */}
-      <aside
-        className="flex w-60 flex-shrink-0 flex-col"
-        style={{ background: "#0f2744" }}
-      >
+      <aside className="flex w-60 flex-shrink-0 flex-col" style={{ background: "#0f2744" }}>
         {/* Logo area */}
         <div
           className="flex h-14 items-center px-5"
@@ -168,11 +217,7 @@ export function DashboardLayout({
                           ? "text-[#e8f2ff]"
                           : "text-[#94b8d8] hover:bg-white/[0.06] hover:text-[#d4e6f7]",
                       )}
-                      style={
-                        isActive
-                          ? { background: "rgba(59,130,246,0.18)" }
-                          : undefined
-                      }
+                      style={isActive ? { background: "rgba(59,130,246,0.18)" } : undefined}
                     >
                       {/* Active indicator */}
                       {isActive && (
@@ -204,12 +249,23 @@ export function DashboardLayout({
             <Link
               href={variant === "admin" ? "/inbox" : "/admin"}
               className="flex items-center gap-2.5 rounded-md px-3 py-2 text-[13px] font-medium transition-colors hover:bg-white/[0.06]"
-              style={{ color: "#7a9cc4", borderTop: "1px solid rgba(255,255,255,0.06)", paddingTop: "10px" }}
+              style={{
+                color: "#7a9cc4",
+                borderTop: "1px solid rgba(255,255,255,0.06)",
+                paddingTop: "10px",
+              }}
             >
-              {variant === "admin"
-                ? <><Inbox className="h-4 w-4 opacity-70" /><span>Zum Posteingang</span></>
-                : <><LayoutDashboard className="h-4 w-4 opacity-70" /><span>Administration</span></>
-              }
+              {variant === "admin" ? (
+                <>
+                  <Inbox className="h-4 w-4 opacity-70" />
+                  <span>Zum Posteingang</span>
+                </>
+              ) : (
+                <>
+                  <LayoutDashboard className="h-4 w-4 opacity-70" />
+                  <span>Administration</span>
+                </>
+              )}
             </Link>
           </div>
         )}
@@ -257,9 +313,7 @@ export function DashboardLayout({
           ) : (
             <div />
           )}
-          {headerActions && (
-            <div className="flex items-center gap-3">{headerActions}</div>
-          )}
+          {headerActions && <div className="flex items-center gap-3">{headerActions}</div>}
         </header>
 
         {/* Content */}

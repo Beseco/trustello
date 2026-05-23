@@ -81,9 +81,7 @@ export class TrustelloClient {
   }
 
   searchCustomers(q: string): Promise<CustomerResult[]> {
-    return this.request<CustomerResult[]>(
-      `/api/v1/customers?q=${encodeURIComponent(q)}&limit=10`,
-    );
+    return this.request<CustomerResult[]>(`/api/v1/customers?q=${encodeURIComponent(q)}&limit=10`);
   }
 
   getTemplates(): Promise<Template[]> {

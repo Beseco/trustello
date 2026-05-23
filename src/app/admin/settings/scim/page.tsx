@@ -23,8 +23,7 @@ export default async function ScimSettingsPage() {
         <CardHeader>
           <CardTitle>SCIM Bearer-Token</CardTitle>
           <CardDescription>
-            Dieses Token autorisiert Entra ID, Benutzer in Trustello anzulegen und zu
-            deaktivieren.
+            Dieses Token autorisiert Entra ID, Benutzer in Trustello anzulegen und zu deaktivieren.
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -73,9 +72,7 @@ export default async function ScimSettingsPage() {
                   givenName → name.givenName
                 </Badge>
               </li>
-              <li>
-                Provisioning starten → Benutzer werden automatisch in Trustello angelegt
-              </li>
+              <li>Provisioning starten → Benutzer werden automatisch in Trustello angelegt</li>
             </ol>
           </div>
         </CardContent>

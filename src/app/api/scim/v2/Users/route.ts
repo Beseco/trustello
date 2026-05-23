@@ -58,7 +58,14 @@ export async function GET(request: NextRequest) {
       },
       skip: startIndex - 1,
       take: count,
-      select: { id: true, firstName: true, lastName: true, email: true, isActive: true, entraId: true },
+      select: {
+        id: true,
+        firstName: true,
+        lastName: true,
+        email: true,
+        isActive: true,
+        entraId: true,
+      },
     });
 
     const total = await prisma.user.count({ where: { tenantId: auth.tenantId } });
@@ -112,7 +119,14 @@ export async function POST(request: NextRequest) {
         roles: ["EMPLOYEE"],
         passwordHash,
       },
-      select: { id: true, firstName: true, lastName: true, email: true, isActive: true, entraId: true },
+      select: {
+        id: true,
+        firstName: true,
+        lastName: true,
+        email: true,
+        isActive: true,
+        entraId: true,
+      },
     });
 
     return Response.json(toScimUser(user), { status: 201, headers: SCIM_HEADERS });

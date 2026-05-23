@@ -13,11 +13,7 @@ export type TrustelloUser = {
 export class TrustelloSyncClient {
   constructor(private readonly config: Config) {}
 
-  private async req<T>(
-    path: string,
-    method = "GET",
-    body?: unknown,
-  ): Promise<T> {
+  private async req<T>(path: string, method = "GET", body?: unknown): Promise<T> {
     const res = await fetch(`${this.config.trustello.apiUrl}${path}`, {
       method,
       headers: {

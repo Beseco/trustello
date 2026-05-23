@@ -54,13 +54,17 @@ export default function PostfachLoginPage() {
             <Lock className="h-7 w-7 text-white" />
           </div>
           <h1 className="text-2xl font-bold text-slate-900">Willkommen</h1>
-          <p className="mt-1 text-sm text-slate-500">Melden Sie sich in Ihrem sicheren Postfach an</p>
+          <p className="mt-1 text-sm text-slate-500">
+            Melden Sie sich in Ihrem sicheren Postfach an
+          </p>
         </div>
 
         <div className="rounded-2xl border bg-white p-6 shadow-sm">
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
-              <Label htmlFor="email" className="text-slate-700">E-Mail-Adresse</Label>
+              <Label htmlFor="email" className="text-slate-700">
+                E-Mail-Adresse
+              </Label>
               <Input
                 id="email"
                 type="email"
@@ -75,7 +79,9 @@ export default function PostfachLoginPage() {
             </div>
 
             <div>
-              <Label htmlFor="password" className="text-slate-700">Passwort</Label>
+              <Label htmlFor="password" className="text-slate-700">
+                Passwort
+              </Label>
               <div className="relative mt-1">
                 <Input
                   id="password"
@@ -102,13 +108,17 @@ export default function PostfachLoginPage() {
               onClick={() => setShowTotp((v) => !v)}
               className="flex items-center gap-1 text-xs text-slate-500 hover:text-slate-700"
             >
-              <ChevronDown className={`h-3.5 w-3.5 transition-transform ${showTotp ? "rotate-180" : ""}`} />
+              <ChevronDown
+                className={`h-3.5 w-3.5 transition-transform ${showTotp ? "rotate-180" : ""}`}
+              />
               2-Faktor-Authentifizierung (optional)
             </button>
 
             {showTotp && (
               <div>
-                <Label htmlFor="totp" className="text-slate-700">Authenticator-Code</Label>
+                <Label htmlFor="totp" className="text-slate-700">
+                  Authenticator-Code
+                </Label>
                 <Input
                   id="totp"
                   type="text"
@@ -145,7 +155,9 @@ export default function PostfachLoginPage() {
 
         <p className="text-center text-xs text-slate-400">
           Noch kein Konto?{" "}
-          <span className="text-slate-500">Sie erhalten eine Einladungs-E-Mail, wenn eine Behörde Ihnen eine Nachricht sendet.</span>
+          <span className="text-slate-500">
+            Sie erhalten eine Einladungs-E-Mail, wenn eine Behörde Ihnen eine Nachricht sendet.
+          </span>
         </p>
       </div>
     </div>

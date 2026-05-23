@@ -69,7 +69,9 @@ export function RecipientSearch({ client, selected, onSelect, prefilledEmail }: 
       {searched && results.length === 0 && (
         <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
           <Warning20Regular color="#d97706" />
-          <Text size={200}>Kein Tresor-Konto gefunden — Bürger kann noch nicht verifiziert werden.</Text>
+          <Text size={200}>
+            Kein Tresor-Konto gefunden — Bürger kann noch nicht verifiziert werden.
+          </Text>
         </div>
       )}
 

@@ -20,7 +20,9 @@ const ConfigSchema = z.object({
   sync: z.object({
     intervalMinutes: z.number().int().min(1).default(15),
     dryRun: z.boolean().default(false),
-    defaultRole: z.enum(["EMPLOYEE", "CUSTOMER_MANAGER", "USER_MANAGER", "TENANT_ADMIN"]).default("EMPLOYEE"),
+    defaultRole: z
+      .enum(["EMPLOYEE", "CUSTOMER_MANAGER", "USER_MANAGER", "TENANT_ADMIN"])
+      .default("EMPLOYEE"),
     groupToOuMapping: GroupMappingSchema.optional(),
   }),
 });

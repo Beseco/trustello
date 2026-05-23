@@ -7,9 +7,7 @@ export type ComposeData = {
   attachments: Office.AttachmentDetails[];
 };
 
-function getAsync<T>(
-  fn: (callback: (result: Office.AsyncResult<T>) => void) => void,
-): Promise<T> {
+function getAsync<T>(fn: (callback: (result: Office.AsyncResult<T>) => void) => void): Promise<T> {
   return new Promise((resolve, reject) => {
     fn((result) => {
       if (result.status === Office.AsyncResultStatus.Succeeded) {

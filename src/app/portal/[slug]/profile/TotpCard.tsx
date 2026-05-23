@@ -65,10 +65,15 @@ function DisableTotpForm({ onDisabled }: { onDisabled: () => void }) {
   }
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-3 rounded-lg border border-destructive/30 bg-destructive/5 p-4">
+    <form
+      onSubmit={handleSubmit}
+      className="space-y-3 rounded-lg border border-destructive/30 bg-destructive/5 p-4"
+    >
       <p className="text-sm font-medium text-destructive">2FA deaktivieren</p>
       <div>
-        <Label htmlFor="dis-code" className="text-xs">Aktueller 6-stelliger Code</Label>
+        <Label htmlFor="dis-code" className="text-xs">
+          Aktueller 6-stelliger Code
+        </Label>
         <Input
           id="dis-code"
           type="text"
@@ -82,7 +87,9 @@ function DisableTotpForm({ onDisabled }: { onDisabled: () => void }) {
         />
       </div>
       <div>
-        <Label htmlFor="dis-pw" className="text-xs">Ihr Passwort zur Bestätigung</Label>
+        <Label htmlFor="dis-pw" className="text-xs">
+          Ihr Passwort zur Bestätigung
+        </Label>
         <Input
           id="dis-pw"
           type="password"
@@ -93,9 +100,7 @@ function DisableTotpForm({ onDisabled }: { onDisabled: () => void }) {
           required
         />
       </div>
-      {error && (
-        <p className="text-sm text-destructive">{error}</p>
-      )}
+      {error && <p className="text-sm text-destructive">{error}</p>}
       <div className="flex gap-2">
         <Button type="submit" variant="destructive" size="sm" disabled={isPending}>
           {isPending && <Loader2 className="mr-2 h-3.5 w-3.5 animate-spin" />}
@@ -186,7 +191,11 @@ function EnableTotpFlow({ onEnabled }: { onEnabled: () => void }) {
               className="text-muted-foreground hover:text-foreground"
               title="Secret kopieren"
             >
-              {copied ? <Check className="h-3.5 w-3.5 text-green-600" /> : <Copy className="h-3.5 w-3.5" />}
+              {copied ? (
+                <Check className="h-3.5 w-3.5 text-green-600" />
+              ) : (
+                <Copy className="h-3.5 w-3.5" />
+              )}
             </button>
           </div>
           <p className="text-xs text-muted-foreground">
@@ -207,7 +216,9 @@ function EnableTotpFlow({ onEnabled }: { onEnabled: () => void }) {
           Geben Sie den aktuellen Code aus Ihrer App ein, um die Einrichtung abzuschließen.
         </p>
         <div>
-          <Label htmlFor="totp-code" className="text-xs">6-stelliger Code</Label>
+          <Label htmlFor="totp-code" className="text-xs">
+            6-stelliger Code
+          </Label>
           <Input
             id="totp-code"
             type="text"
@@ -221,7 +232,9 @@ function EnableTotpFlow({ onEnabled }: { onEnabled: () => void }) {
           />
         </div>
         <div>
-          <Label htmlFor="totp-pw" className="text-xs">Ihr Passwort zur Bestätigung</Label>
+          <Label htmlFor="totp-pw" className="text-xs">
+            Ihr Passwort zur Bestätigung
+          </Label>
           <Input
             id="totp-pw"
             type="password"
@@ -268,16 +281,16 @@ export function TotpCard({ totpEnabled: initialEnabled }: Props) {
             <span className="font-medium">Zwei-Faktor-Authentifizierung ist aktiv.</span>
           </div>
           <p className="text-sm text-muted-foreground">
-            Ihr Konto ist durch eine Authenticator-App geschützt. Beim Anmelden werden Sie
-            nach einem 6-stelligen Code gefragt.
+            Ihr Konto ist durch eine Authenticator-App geschützt. Beim Anmelden werden Sie nach
+            einem 6-stelligen Code gefragt.
           </p>
           <DisableTotpForm onDisabled={() => setEnabled(false)} />
         </div>
       ) : (
         <div className="space-y-4">
           <p className="text-sm text-muted-foreground">
-            Schützen Sie Ihr Konto zusätzlich mit einer Authenticator-App. Nach der
-            Aktivierung benötigen Sie bei jeder Anmeldung einen 6-stelligen Code.
+            Schützen Sie Ihr Konto zusätzlich mit einer Authenticator-App. Nach der Aktivierung
+            benötigen Sie bei jeder Anmeldung einen 6-stelligen Code.
           </p>
           <EnableTotpFlow onEnabled={() => setEnabled(true)} />
         </div>

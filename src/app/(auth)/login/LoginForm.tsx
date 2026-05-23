@@ -159,7 +159,11 @@ export function LoginForm() {
             </Link>
           </div>
 
-          <Button type="submit" className="w-full" disabled={submitting || form.formState.isSubmitting}>
+          <Button
+            type="submit"
+            className="w-full"
+            disabled={submitting || form.formState.isSubmitting}
+          >
             {(submitting || form.formState.isSubmitting) && (
               <Loader2 className="mr-2 h-4 w-4 animate-spin" />
             )}

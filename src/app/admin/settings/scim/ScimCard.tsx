@@ -3,11 +3,7 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import {
-  Alert,
-  AlertDescription,
-  AlertTitle,
-} from "@/components/ui/alert";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { generateScimToken, deleteScimToken } from "@/server/actions/scim-settings";
 import { AlertTriangle, CheckCircle, Copy, Trash2 } from "lucide-react";
 
@@ -65,9 +61,7 @@ export function ScimCard({ hasToken: initialHasToken, lastUsedAt, createdAt }: P
             ) : (
               <AlertTriangle className="h-4 w-4 text-amber-500" />
             )}
-            <span className="font-medium">
-              {hasToken ? "Token konfiguriert" : "Kein Token"}
-            </span>
+            <span className="font-medium">{hasToken ? "Token konfiguriert" : "Kein Token"}</span>
           </div>
           {hasToken && createdAt && (
             <p className="mt-1 text-xs text-muted-foreground">

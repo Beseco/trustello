@@ -2,11 +2,7 @@ import { type NextRequest } from "next/server";
 import { prisma } from "@/lib/db";
 import { validateApiKey, requireScope, handleApiAuthError, apiError } from "@/lib/api-auth";
 import { z } from "zod";
-import {
-  unwrapTenantMasterKey,
-  createMessageKeyMaterial,
-  encrypt,
-} from "@/lib/crypto/envelope";
+import { unwrapTenantMasterKey, createMessageKeyMaterial, encrypt } from "@/lib/crypto/envelope";
 import { sendMail } from "@/lib/mail/send";
 import { messageNotificationTemplate } from "@/lib/mail/templates/message-notification";
 import { logger } from "@/lib/logger";
@@ -78,7 +74,9 @@ const postSchema = z.object({
   subject: z.string().min(1).max(500),
   body: z.string().min(1).max(50000),
   securityLevel: z.enum(["LEVEL_1", "LEVEL_2"]).default("LEVEL_2"),
-  minTrustLevel: z.enum(["NONE", "EMAIL", "SMS", "PIN_LETTER", "BAYERN_ID_S", "BAYERN_ID_H", "EID"]).default("EMAIL"),
+  minTrustLevel: z
+    .enum(["NONE", "EMAIL", "SMS", "PIN_LETTER", "BAYERN_ID_S", "BAYERN_ID_H", "EID"])
+    .default("EMAIL"),
   allowReply: z.boolean().default(true),
 });
 
@@ -102,7 +100,15 @@ export async function POST(request: NextRequest) {
       return apiError(400, parsed.error.issues[0]?.message ?? "Ungültige Eingabe.");
     }
 
-    const { recipientId, recipientEmail, subject, body: bodyText, securityLevel, minTrustLevel, allowReply } = parsed.data;
+    const {
+      recipientId,
+      recipientEmail,
+      subject,
+      body: bodyText,
+      securityLevel,
+      minTrustLevel,
+      allowReply,
+    } = parsed.data;
 
     if (!recipientId && !recipientEmail) {
       return apiError(400, "recipientId oder recipientEmail erforderlich.");
@@ -157,7 +163,8 @@ export async function POST(request: NextRequest) {
         minTrustLevel,
         messageKey: messageKeyMaterial.messageKey as unknown as Uint8Array<ArrayBuffer>,
         messageKeyIv: messageKeyMaterial.messageKeyIv as unknown as Uint8Array<ArrayBuffer>,
-        messageKeyAuthTag: messageKeyMaterial.messageKeyAuthTag as unknown as Uint8Array<ArrayBuffer>,
+        messageKeyAuthTag:
+          messageKeyMaterial.messageKeyAuthTag as unknown as Uint8Array<ArrayBuffer>,
         allowReply,
         allowReplyAttach: allowReply,
         expiresAt,
@@ -165,7 +172,10 @@ export async function POST(request: NextRequest) {
       },
     });
 
-    logger.info({ messageId: message.id, tenantId: auth.tenantId, recipientId: recipient.id }, "API message sent");
+    logger.info(
+      { messageId: message.id, tenantId: auth.tenantId, recipientId: recipient.id },
+      "API message sent",
+    );
 
     const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000";
     sendMail({
@@ -178,7 +188,10 @@ export async function POST(request: NextRequest) {
       }),
     }).catch(() => undefined);
 
-    return Response.json({ id: message.id, messageUrl: `${appUrl}/m/${message.id}` }, { status: 201 });
+    return Response.json(
+      { id: message.id, messageUrl: `${appUrl}/m/${message.id}` },
+      { status: 201 },
+    );
   } catch (err) {
     return handleApiAuthError(err);
   }

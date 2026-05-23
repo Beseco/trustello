@@ -154,7 +154,11 @@ export default function ResellerLoginPage() {
               </a>
             </div>
 
-            <Button type="submit" className="w-full bg-slate-900 hover:bg-slate-800" disabled={isPending}>
+            <Button
+              type="submit"
+              className="w-full bg-slate-900 hover:bg-slate-800"
+              disabled={isPending}
+            >
               {isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
               Anmelden
             </Button>

@@ -44,7 +44,14 @@ export async function GET(request: NextRequest, { params }: Params) {
 
     const user = await prisma.user.findFirst({
       where: { id: userId, tenantId: auth.tenantId },
-      select: { id: true, firstName: true, lastName: true, email: true, isActive: true, entraId: true },
+      select: {
+        id: true,
+        firstName: true,
+        lastName: true,
+        email: true,
+        isActive: true,
+        entraId: true,
+      },
     });
 
     if (!user) return scimError(404, "User nicht gefunden.");
@@ -80,7 +87,14 @@ export async function PUT(request: NextRequest, { params }: Params) {
         isActive: body.active ?? existing.isActive,
         entraId: body.externalId ?? existing.entraId,
       },
-      select: { id: true, firstName: true, lastName: true, email: true, isActive: true, entraId: true },
+      select: {
+        id: true,
+        firstName: true,
+        lastName: true,
+        email: true,
+        isActive: true,
+        entraId: true,
+      },
     });
 
     return Response.json(toScimUser(user), { headers: SCIM_HEADERS });
@@ -118,7 +132,14 @@ export async function PATCH(request: NextRequest, { params }: Params) {
     const user = await prisma.user.update({
       where: { id: userId },
       data: updates,
-      select: { id: true, firstName: true, lastName: true, email: true, isActive: true, entraId: true },
+      select: {
+        id: true,
+        firstName: true,
+        lastName: true,
+        email: true,
+        isActive: true,
+        entraId: true,
+      },
     });
 
     return Response.json(toScimUser(user), { headers: SCIM_HEADERS });

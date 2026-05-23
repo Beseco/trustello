@@ -11,8 +11,7 @@ const DEFAULT_URL = "https://app.trustello.de";
 
 function readFromRoamingSettings(): AddinSettings {
   const apiKey = (Office.context.roamingSettings.get(SETTINGS_KEY_API) as string) ?? "";
-  const serverUrl =
-    (Office.context.roamingSettings.get(SETTINGS_KEY_URL) as string) ?? DEFAULT_URL;
+  const serverUrl = (Office.context.roamingSettings.get(SETTINGS_KEY_URL) as string) ?? DEFAULT_URL;
   return { apiKey, serverUrl };
 }
 
