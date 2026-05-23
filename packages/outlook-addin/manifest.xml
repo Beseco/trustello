@@ -11,6 +11,7 @@
   <DisplayName DefaultValue="Trustello"/>
   <Description DefaultValue="Nachrichten sicher versenden"/>
   <IconUrl DefaultValue="https://addin.trustello.de/assets/icon-80.png"/>
+  <HighResolutionIconUrl DefaultValue="https://addin.trustello.de/assets/icon-80.png"/>
   <SupportUrl DefaultValue="https://trustello.de"/>
 
   <AppDomains>
@@ -31,7 +32,6 @@
     <Form xsi:type="ItemEdit">
       <DesktopSettings>
         <SourceLocation DefaultValue="https://addin.trustello.de/taskpane.html"/>
-        <RequestedHeight>450</RequestedHeight>
       </DesktopSettings>
     </Form>
   </FormSettings>
