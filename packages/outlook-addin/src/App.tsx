@@ -1,34 +1,26 @@
 import { useState, useEffect } from "react";
-import {
-  Tab,
-  TabList,
-  Spinner,
-  MessageBar,
-  MessageBarBody,
-  Text,
-} from "@fluentui/react-components";
+import { Tab, TabList, Spinner, MessageBar, MessageBarBody, Text } from "@fluentui/react-components";
 import { useSettings } from "@/hooks/useSettings";
 import { TrustelloClient, type TenantInfo } from "@/api/trustello";
 import { ComposePage } from "@/pages/ComposePage";
 import { SettingsPage } from "@/pages/SettingsPage";
 
-type Tab = "compose" | "settings";
+type ActiveTab = "compose" | "settings";
 
 export function App() {
-  const { settings, loaded } = useSettings();
-  const [activeTab, setActiveTab] = useState<Tab>("compose");
+  const { settings } = useSettings();
+  const [activeTab, setActiveTab] = useState<ActiveTab>("compose");
   const [tenantInfo, setTenantInfo] = useState<TenantInfo | null>(null);
   const [initError, setInitError] = useState<string | null>(null);
-  // initializing beginnt als true wenn ein API-Key vorhanden ist
-  const [initializing, setInitializing] = useState(() => !!settings.apiKey);
+  const [initializing, setInitializing] = useState(() => !!settings.token);
 
-  // Tab ableiten: Einstellungen anzeigen wenn kein API-Key oder Verbindungsfehler
-  const effectiveTab: Tab = !settings.apiKey ? "settings" : activeTab;
+  // Kein Token → direkt auf Einstellungen (Login-Seite)
+  const effectiveTab: ActiveTab = !settings.token ? "settings" : activeTab;
 
   useEffect(() => {
-    if (!settings.apiKey) return;
+    if (!settings.token) return;
     let cancelled = false;
-    const client = new TrustelloClient(settings.serverUrl, settings.apiKey);
+    const client = new TrustelloClient(settings.serverUrl, settings.token);
     client
       .getMe()
       .then((info: TenantInfo) => {
@@ -46,9 +38,9 @@ export function App() {
     return () => {
       cancelled = true;
     };
-  }, [settings.apiKey, settings.serverUrl]);
+  }, [settings.token, settings.serverUrl]);
 
-  if (!loaded || initializing) {
+  if (initializing) {
     return (
       <div style={{ padding: 24, display: "flex", alignItems: "center", gap: 8 }}>
         <Spinner size="small" />
@@ -57,7 +49,7 @@ export function App() {
     );
   }
 
-  const client = new TrustelloClient(settings.serverUrl, settings.apiKey);
+  const client = new TrustelloClient(settings.serverUrl, settings.token);
 
   return (
     <div style={{ display: "flex", flexDirection: "column", height: "100vh" }}>
@@ -97,15 +89,17 @@ export function App() {
         </Text>
       </div>
 
-      {/* Navigation */}
-      <TabList
-        selectedValue={effectiveTab}
-        onTabSelect={(_, d) => setActiveTab(d.value as Tab)}
-        style={{ padding: "0 8px", borderBottom: "1px solid #e5e7eb" }}
-      >
-        <Tab value="compose">Senden</Tab>
-        <Tab value="settings">Einstellungen</Tab>
-      </TabList>
+      {/* Navigation — nur anzeigen wenn eingeloggt */}
+      {settings.token && (
+        <TabList
+          selectedValue={effectiveTab}
+          onTabSelect={(_, d) => setActiveTab(d.value as ActiveTab)}
+          style={{ padding: "0 8px", borderBottom: "1px solid #e5e7eb" }}
+        >
+          <Tab value="compose">Senden</Tab>
+          <Tab value="settings">Konto</Tab>
+        </TabList>
+      )}
 
       {/* Error Banner */}
       {initError && (
@@ -120,7 +114,7 @@ export function App() {
           <ComposePage client={client} tenantName={tenantInfo.tenantName} />
         ) : effectiveTab === "compose" && !tenantInfo ? (
           <div style={{ padding: 16 }}>
-            <Text>Bitte zuerst API-Key in den Einstellungen hinterlegen.</Text>
+            <Text>Verbindung wird hergestellt...</Text>
           </div>
         ) : (
           <SettingsPage />

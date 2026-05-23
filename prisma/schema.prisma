@@ -106,6 +106,7 @@ model Tenant {
   customers            Customer[]
   messages             Message[]
   apiKeys              ApiKey[]
+  addinTokens          AddinToken[]
   scimToken            ScimToken?
   importJobs           ImportJob[]
   settings             TenantSettings?
@@ -306,6 +307,7 @@ model User {
   customerNotes       CustomerNote[]
   passwordResetTokens PasswordResetToken[]
   messageTemplates    MessageTemplate[]
+  addinTokens         AddinToken[]
   createdAt           DateTime             @default(now())
   updatedAt           DateTime             @updatedAt
 }
@@ -539,6 +541,19 @@ model ApiKey {
   lastUsedAt DateTime?
   expiresAt  DateTime?
   createdAt  DateTime  @default(now())
+}
+
+// Outlook Add-in Session Token (Login statt API-Key)
+model AddinToken {
+  id         String   @id @default(cuid())
+  userId     String
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  tenantId   String
+  tenant     Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  tokenHash  String   @unique // SHA-256
+  createdAt  DateTime @default(now())
+  lastUsedAt DateTime?
+  expiresAt  DateTime // 90 Tage
 }
 
 // SCIM 2.0 Bearer-Token für Entra ID / Azure AD Provisioning

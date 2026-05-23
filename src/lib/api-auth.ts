@@ -63,3 +63,33 @@ export function handleApiAuthError(err: unknown): Response {
   }
   return apiError(500, "Interner Serverfehler.");
 }
+
+export type AddinAuthResult = {
+  tenantId: string;
+  userId: string;
+};
+
+// Validiert einen Addin-Session-Token (Login-basiert, kein API-Key)
+export async function validateAddinToken(request: NextRequest): Promise<AddinAuthResult> {
+  const authHeader = request.headers.get("authorization");
+  if (!authHeader?.startsWith("Bearer ")) {
+    throw new ApiAuthError(401, "Kein Bearer-Token angegeben.");
+  }
+
+  const rawToken = authHeader.slice(7).trim();
+  const tokenHash = createHash("sha256").update(rawToken).digest("hex");
+
+  const token = await prisma.addinToken.findUnique({
+    where: { tokenHash },
+    select: { id: true, tenantId: true, userId: true, expiresAt: true },
+  });
+
+  if (!token) throw new ApiAuthError(401, "Ungültiger oder abgelaufener Token.");
+  if (token.expiresAt < new Date()) throw new ApiAuthError(401, "Token abgelaufen. Bitte neu anmelden.");
+
+  prisma.addinToken
+    .update({ where: { id: token.id }, data: { lastUsedAt: new Date() } })
+    .catch(() => undefined);
+
+  return { tenantId: token.tenantId, userId: token.userId };
+}

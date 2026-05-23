@@ -53,14 +53,14 @@ export class TrustelloApiError extends Error {
 export class TrustelloClient {
   constructor(
     private readonly serverUrl: string,
-    private readonly apiKey: string,
+    private readonly token: string,
   ) {}
 
   private async request<T>(path: string, init?: RequestInit): Promise<T> {
     const res = await fetch(`${this.serverUrl}${path}`, {
       ...init,
       headers: {
-        Authorization: `Bearer ${this.apiKey}`,
+        Authorization: `Bearer ${this.token}`,
         "Content-Type": "application/json",
         ...init?.headers,
       },
@@ -104,7 +104,7 @@ export class TrustelloClient {
     const res = await fetch(`${this.serverUrl}/api/upload/stage`, {
       method: "PUT",
       headers: {
-        Authorization: `Bearer ${this.apiKey}`,
+        Authorization: `Bearer ${this.token}`,
         "Content-Type": mimeType,
         "x-file-name": encodeURIComponent(fileName),
         "x-file-size": String(binary.length),
