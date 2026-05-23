@@ -85,7 +85,8 @@ export async function validateAddinToken(request: NextRequest): Promise<AddinAut
   });
 
   if (!token) throw new ApiAuthError(401, "Ungültiger oder abgelaufener Token.");
-  if (token.expiresAt < new Date()) throw new ApiAuthError(401, "Token abgelaufen. Bitte neu anmelden.");
+  if (token.expiresAt < new Date())
+    throw new ApiAuthError(401, "Token abgelaufen. Bitte neu anmelden.");
 
   prisma.addinToken
     .update({ where: { id: token.id }, data: { lastUsedAt: new Date() } })

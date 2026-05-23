@@ -1,5 +1,12 @@
 import { useState, useEffect } from "react";
-import { Tab, TabList, Spinner, MessageBar, MessageBarBody, Text } from "@fluentui/react-components";
+import {
+  Tab,
+  TabList,
+  Spinner,
+  MessageBar,
+  MessageBarBody,
+  Text,
+} from "@fluentui/react-components";
 import { useSettings } from "@/hooks/useSettings";
 import { TrustelloClient, type TenantInfo } from "@/api/trustello";
 import { ComposePage } from "@/pages/ComposePage";

@@ -69,7 +69,12 @@ export function SettingsPage() {
     } catch {
       // Fehler ignorieren — lokal trotzdem abmelden
     } finally {
-      await saveSettings({ token: "", serverUrl: settings.serverUrl, userName: "", tenantName: "" });
+      await saveSettings({
+        token: "",
+        serverUrl: settings.serverUrl,
+        userName: "",
+        tenantName: "",
+      });
       setLoading(false);
     }
   }
@@ -140,11 +145,7 @@ export function SettingsPage() {
         </MessageBar>
       )}
 
-      <Button
-        appearance="primary"
-        onClick={handleLogin}
-        disabled={loading || !email || !password}
-      >
+      <Button appearance="primary" onClick={handleLogin} disabled={loading || !email || !password}>
         {loading ? <Spinner size="tiny" /> : "Anmelden"}
       </Button>
     </div>
