@@ -190,10 +190,7 @@ export async function assignUserToOU(
   return {};
 }
 
-export async function removeUserFromOU(
-  userId: string,
-  ouId: string,
-): Promise<{ error?: string }> {
+export async function removeUserFromOU(userId: string, ouId: string): Promise<{ error?: string }> {
   const session = await requireTenantAdmin();
   const tenantId = session.user.tenantId!;
 

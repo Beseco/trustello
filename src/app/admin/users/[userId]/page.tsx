@@ -66,7 +66,10 @@ export default async function UserDetailPage({ params }: PageProps) {
             <Mail className="h-3.5 w-3.5" />
             {user.email}
             {!user.isActive && (
-              <Badge variant="outline" className="ml-2 text-xs text-destructive border-destructive/30">
+              <Badge
+                variant="outline"
+                className="ml-2 text-xs text-destructive border-destructive/30"
+              >
                 Deaktiviert
               </Badge>
             )}
@@ -76,8 +79,7 @@ export default async function UserDetailPage({ params }: PageProps) {
           {user.lastLoginAt ? (
             <span className="flex items-center gap-1">
               <Clock className="h-3 w-3" />
-              Letzter Login{" "}
-              {formatDistanceToNow(user.lastLoginAt, { addSuffix: true, locale: de })}
+              Letzter Login {formatDistanceToNow(user.lastLoginAt, { addSuffix: true, locale: de })}
             </span>
           ) : (
             <span className="flex items-center gap-1 text-muted-foreground/60">
@@ -143,9 +145,7 @@ export default async function UserDetailPage({ params }: PageProps) {
                   ouName: uou.ou.name,
                   role: uou.role,
                 }))}
-                availableOUs={allOUs.filter(
-                  (ou) => !user.ous.some((uou) => uou.ouId === ou.id),
-                )}
+                availableOUs={allOUs.filter((ou) => !user.ous.some((uou) => uou.ouId === ou.id))}
               />
             </CardContent>
           </Card>
