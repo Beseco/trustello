@@ -11,6 +11,7 @@ import { EditProfileForm } from "./EditProfileForm";
 import { OUManager } from "./OUManager";
 import { RolesCard } from "./RolesCard";
 import { DangerZone } from "./DangerZone";
+import { ResendInviteButton } from "./ResendInviteButton";
 
 export const dynamic = "force-dynamic";
 
@@ -152,6 +153,21 @@ export default async function UserDetailPage({ params }: PageProps) {
 
         {/* Right column */}
         <div className="space-y-6">
+          {/* Einladung erneut senden */}
+          {!isSelf && (
+            <Card>
+              <CardHeader className="pb-4">
+                <CardTitle className="flex items-center gap-2 text-base">
+                  <Mail className="h-4 w-4 text-muted-foreground" />
+                  Einladung
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <ResendInviteButton userId={user.id} />
+              </CardContent>
+            </Card>
+          )}
+
           {/* Reset password */}
           <Card>
             <CardHeader className="pb-4">

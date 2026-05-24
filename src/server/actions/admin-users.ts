@@ -226,3 +226,29 @@ export async function resetUserPasswordAdmin(
   logger.info({ userId, by: session.user.id }, "Admin reset user password");
   return { tempPassword };
 }
+
+export async function resendInvite(userId: string): Promise<{ error?: string }> {
+  const session = await requireTenantAdmin();
+  const tenantId = session.user.tenantId!;
+
+  const user = await prisma.user.findFirst({ where: { id: userId, tenantId } });
+  if (!user) return { error: "Benutzer nicht gefunden." };
+
+  const tempPassword = Math.random().toString(36).slice(-10) + "A1!";
+  const passwordHash = await argon2.hash(tempPassword, { type: argon2.argon2id });
+
+  await prisma.user.update({ where: { id: userId }, data: { passwordHash } });
+
+  await sendMail({
+    to: user.email,
+    subject: "Ihr Trustello-Zugang",
+    html: welcomeEmployeeTemplate({
+      name: `${user.firstName} ${user.lastName}`,
+      email: user.email,
+      tempPassword,
+    }),
+  });
+
+  logger.info({ userId, by: session.user.id }, "Invite resent");
+  return {};
+}
