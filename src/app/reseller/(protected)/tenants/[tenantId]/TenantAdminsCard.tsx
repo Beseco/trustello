@@ -5,7 +5,10 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Mail, Loader2, CheckCircle, UserPlus } from "lucide-react";
-import { resellerResetAdminPassword, resellerCreateTenantAdmin } from "@/server/actions/reseller-tenants";
+import {
+  resellerResetAdminPassword,
+  resellerCreateTenantAdmin,
+} from "@/server/actions/reseller-tenants";
 import {
   Dialog,
   DialogContent,
@@ -181,9 +184,7 @@ export function TenantAdminsCard({ tenantId, admins }: { tenantId: string; admin
                   )}
                   {sentId === admin.id ? "Gesendet ✓" : "Neues Passwort senden"}
                 </Button>
-                {errors[admin.id] && (
-                  <p className="text-xs text-destructive">{errors[admin.id]}</p>
-                )}
+                {errors[admin.id] && <p className="text-xs text-destructive">{errors[admin.id]}</p>}
               </div>
             </div>
           ))}
