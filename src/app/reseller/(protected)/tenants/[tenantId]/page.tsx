@@ -5,8 +5,9 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { TenantStatusSelect } from "../TenantStatusSelect";
 import { PlanSelect } from "./PlanSelect";
+import { TenantAdminsCard } from "./TenantAdminsCard";
 import Link from "next/link";
-import { ArrowLeft, Users, MessageSquare, HardDrive, Building2 } from "lucide-react";
+import { ArrowLeft, Users, MessageSquare, HardDrive, Building2, ShieldCheck } from "lucide-react";
 import { format, formatDistanceToNow } from "date-fns";
 import { de } from "date-fns/locale";
 import type { TenantStatus } from "@prisma/client";
@@ -27,7 +28,7 @@ export default async function TenantDetailPage({ params }: PageProps) {
   const resellerId = session.user.resellerId!;
   const { tenantId } = await params;
 
-  const [tenant, plans, stats] = await Promise.all([
+  const [tenant, plans, stats, admins] = await Promise.all([
     prisma.tenant.findUnique({
       where: { id: tenantId },
       include: { plan: true, settings: true },
@@ -43,6 +44,11 @@ export default async function TenantDetailPage({ params }: PageProps) {
       prisma.organisationUnit.count({ where: { tenantId } }),
       prisma.customer.count({ where: { tenantId } }),
     ]),
+    prisma.user.findMany({
+      where: { tenantId, roles: { has: "TENANT_ADMIN" }, isActive: true },
+      select: { id: true, firstName: true, lastName: true, email: true, lastLoginAt: true },
+      orderBy: { createdAt: "asc" },
+    }),
   ]);
 
   if (!tenant || tenant.resellerId !== resellerId) notFound();
@@ -149,6 +155,19 @@ export default async function TenantDetailPage({ params }: PageProps) {
           </CardContent>
         </Card>
       </div>
+
+      {/* Admins */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2 text-base">
+            <ShieldCheck className="h-4 w-4 text-muted-foreground" />
+            Administratoren
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <TenantAdminsCard tenantId={tenantId} admins={admins} />
+        </CardContent>
+      </Card>
     </div>
   );
 }

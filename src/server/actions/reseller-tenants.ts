@@ -5,6 +5,10 @@ import { requireReseller } from "@/lib/auth-helpers";
 import { createTenantKeyMaterial } from "@/lib/crypto/envelope";
 import { z } from "zod";
 import { revalidatePath } from "next/cache";
+import * as argon2 from "argon2";
+import { sendMail } from "@/lib/mail/send";
+import { welcomeEmployeeTemplate } from "@/lib/mail/templates/welcome-employee";
+import { logger } from "@/lib/logger";
 
 const createTenantSchema = z.object({
   name: z.string().min(2, "Mind. 2 Zeichen").max(100),
@@ -134,5 +138,40 @@ export async function updateTenantPlan(
 
   revalidatePath("/reseller/tenants");
   revalidatePath(`/reseller/tenants/${tenantId}`);
+  return {};
+}
+
+export async function resellerResetAdminPassword(
+  tenantId: string,
+  userId: string,
+): Promise<{ error?: string }> {
+  const session = await requireReseller();
+  const resellerId = session.user.resellerId!;
+
+  const tenant = await prisma.tenant.findFirst({ where: { id: tenantId, resellerId } });
+  if (!tenant) return { error: "Mandant nicht gefunden." };
+
+  const user = await prisma.user.findFirst({ where: { id: userId, tenantId } });
+  if (!user) return { error: "Benutzer nicht gefunden." };
+
+  const tempPassword = Math.random().toString(36).slice(-10) + "A1!";
+  const passwordHash = await argon2.hash(tempPassword, { type: argon2.argon2id });
+  await prisma.user.update({ where: { id: userId }, data: { passwordHash } });
+
+  await sendMail(
+    {
+      to: user.email,
+      subject: "Ihr Trustello-Zugang",
+      html: welcomeEmployeeTemplate({
+        name: `${user.firstName} ${user.lastName}`,
+        email: user.email,
+        tempPassword,
+      }),
+    },
+    undefined,
+    resellerId,
+  );
+
+  logger.info({ userId, tenantId, by: session.user.id }, "Reseller reset admin password");
   return {};
 }
