@@ -7,11 +7,22 @@
  *   3. Umgebungsvariablen (SMTP_HOST, SMTP_PORT, SMTP_FROM)
  */
 
+import dns from "dns";
 import nodemailer, { type Transporter } from "nodemailer";
+import type SMTPTransport from "nodemailer/lib/smtp-transport";
 import { prisma } from "@/lib/db";
 import { encrypt, decrypt } from "@/lib/crypto/envelope";
 import { logger } from "@/lib/logger";
 import type { SmtpConfig } from "@prisma/client";
+
+// IPv4 erzwingen, da manche SMTP-Server auf IPv6 nicht lauschen
+function ipv4Lookup(
+  hostname: string,
+  _opts: unknown,
+  callback: (err: NodeJS.ErrnoException | null, address: string, family: number) => void,
+) {
+  dns.lookup(hostname, { family: 4 }, callback);
+}
 
 // ── Passwort-Verschlüsselung mit MASTER_KEY ────────────────────────────────────
 
@@ -64,12 +75,14 @@ type TransporterResult = {
 function buildTransporter(config: SmtpConfig, source: "tenant" | "reseller"): TransporterResult {
   const password = decryptSmtpPassword(config);
 
-  const transporter = nodemailer.createTransport({
+  const opts: SMTPTransport.Options & { dnsLookup?: typeof ipv4Lookup } = {
     host: config.host,
     port: config.port,
     secure: config.secure,
+    dnsLookup: ipv4Lookup,
     auth: config.user ? { user: config.user, pass: password ?? undefined } : undefined,
-  });
+  };
+  const transporter = nodemailer.createTransport(opts);
 
   const from = config.fromName ? `"${config.fromName}" <${config.fromEmail}>` : config.fromEmail;
 
@@ -83,13 +96,15 @@ function buildEnvTransporter(): TransporterResult {
   const pass = process.env.SMTP_PASSWORD;
   const secure = port === 465;
 
-  const transporter = nodemailer.createTransport({
+  const opts: SMTPTransport.Options & { dnsLookup?: typeof ipv4Lookup } = {
     host,
     port,
     secure,
+    dnsLookup: ipv4Lookup,
     auth: user && pass ? { user, pass } : undefined,
     ignoreTLS: !user,
-  });
+  };
+  const transporter = nodemailer.createTransport(opts);
   const from = process.env.SMTP_FROM ?? "noreply@trustello.local";
   return { transporter, from, source: "env" };
 }
