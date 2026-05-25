@@ -326,7 +326,7 @@ export function ComposeForm({ signature, templates: rawTemplates = [], myOUs = [
   const openNewCustomerForm = () => {
     const q = searchQuery.trim();
     const isEmail = q.includes("@");
-    let pre = { firstName: "", lastName: "", email: "" };
+    const pre = { firstName: "", lastName: "", email: "" };
     if (isEmail) {
       pre.email = q;
       const local = q.split("@")[0] ?? "";
