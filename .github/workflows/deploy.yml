@@ -35,7 +35,7 @@ jobs:
 
             echo "=== Building Outlook Add-in ==="
             cd /opt/trustello
-            npm install -g pnpm --silent
+            npm install -g pnpm@9 --silent
             pnpm install --frozen-lockfile --filter @trustello/outlook-addin
             pnpm --filter @trustello/outlook-addin build
             mkdir -p /opt/trustello/addin
