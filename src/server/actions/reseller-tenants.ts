@@ -175,3 +175,58 @@ export async function resellerResetAdminPassword(
   logger.info({ userId, tenantId, by: session.user.id }, "Reseller reset admin password");
   return {};
 }
+
+const createTenantAdminSchema = z.object({
+  firstName: z.string().min(1).max(100),
+  lastName: z.string().min(1).max(100),
+  email: z.string().email().toLowerCase(),
+});
+
+export async function resellerCreateTenantAdmin(
+  tenantId: string,
+  data: { firstName: string; lastName: string; email: string },
+): Promise<{ error?: string }> {
+  const session = await requireReseller();
+  const resellerId = session.user.resellerId!;
+
+  const tenant = await prisma.tenant.findFirst({
+    where: { id: tenantId, resellerId },
+    include: { plan: { select: { maxUsers: true } } },
+  });
+  if (!tenant) return { error: "Mandant nicht gefunden." };
+
+  const parsed = createTenantAdminSchema.safeParse(data);
+  if (!parsed.success) return { error: parsed.error.issues[0]?.message ?? "Ungültige Eingaben." };
+
+  const { firstName, lastName, email } = parsed.data;
+
+  const existing = await prisma.user.findUnique({ where: { email } });
+  if (existing) return { error: "Diese E-Mail-Adresse ist bereits vergeben." };
+
+  const currentCount = await prisma.user.count({ where: { tenantId, isActive: true } });
+  if (currentCount >= tenant.plan.maxUsers) {
+    return { error: `Plan-Limit erreicht (max. ${tenant.plan.maxUsers} Benutzer).` };
+  }
+
+  const tempPassword = Math.random().toString(36).slice(-10) + "A1!";
+  const passwordHash = await argon2.hash(tempPassword, { type: argon2.argon2id });
+
+  const user = await prisma.user.create({
+    data: { tenantId, firstName, lastName, email, passwordHash, roles: ["TENANT_ADMIN"] },
+  });
+
+  await sendMail(
+    {
+      to: email,
+      subject: "Sie wurden zu Trustello eingeladen",
+      html: welcomeEmployeeTemplate({ name: `${firstName} ${lastName}`, email, tempPassword }),
+    },
+    undefined,
+    resellerId,
+  );
+
+  logger.info({ userId: user.id, tenantId, by: session.user.id }, "Reseller created tenant admin");
+
+  revalidatePath(`/reseller/tenants/${tenantId}`);
+  return {};
+}
