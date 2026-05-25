@@ -15,10 +15,16 @@ import type { TenantStatus } from "@prisma/client";
 export const dynamic = "force-dynamic";
 
 const STATUS_LABELS: Record<TenantStatus, string> = {
-  TRIAL: "Trial", ACTIVE: "Aktiv", SUSPENDED: "Gesperrt", CANCELLED: "Gekündigt",
+  TRIAL: "Trial",
+  ACTIVE: "Aktiv",
+  SUSPENDED: "Gesperrt",
+  CANCELLED: "Gekündigt",
 };
 const STATUS_VARIANTS: Record<TenantStatus, "default" | "secondary" | "outline" | "destructive"> = {
-  TRIAL: "secondary", ACTIVE: "default", SUSPENDED: "destructive", CANCELLED: "outline",
+  TRIAL: "secondary",
+  ACTIVE: "default",
+  SUSPENDED: "destructive",
+  CANCELLED: "outline",
 };
 
 type PageProps = { params: Promise<{ tenantId: string }> };
@@ -79,10 +85,22 @@ export default async function TenantDetailPage({ params }: PageProps) {
       {/* Statistiken */}
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         {[
-          { label: "Benutzer", value: `${userCount} / ${tenant.plan.maxUsers}`, icon: <Users className="h-4 w-4" /> },
+          {
+            label: "Benutzer",
+            value: `${userCount} / ${tenant.plan.maxUsers}`,
+            icon: <Users className="h-4 w-4" />,
+          },
           { label: "Kunden", value: String(customerCount), icon: <Users className="h-4 w-4" /> },
-          { label: "Nachrichten", value: String(messageCount), icon: <MessageSquare className="h-4 w-4" /> },
-          { label: "Speicher", value: `${storageGB.toFixed(2)} / ${tenant.plan.storageGB} GB`, icon: <HardDrive className="h-4 w-4" /> },
+          {
+            label: "Nachrichten",
+            value: String(messageCount),
+            icon: <MessageSquare className="h-4 w-4" />,
+          },
+          {
+            label: "Speicher",
+            value: `${storageGB.toFixed(2)} / ${tenant.plan.storageGB} GB`,
+            icon: <HardDrive className="h-4 w-4" />,
+          },
         ].map((s) => (
           <Card key={s.label}>
             <CardHeader className="flex flex-row items-center justify-between pb-2">
@@ -108,7 +126,11 @@ export default async function TenantDetailPage({ params }: PageProps) {
               <PlanSelect
                 tenantId={tenant.id}
                 currentPlanId={tenant.planId}
-                plans={plans.map((p) => ({ id: p.id, name: p.name, monthlyPrice: String(p.monthlyPrice) }))}
+                plans={plans.map((p) => ({
+                  id: p.id,
+                  name: p.name,
+                  monthlyPrice: String(p.monthlyPrice),
+                }))}
               />
             </div>
             <div className="flex items-center justify-between">
@@ -119,8 +141,8 @@ export default async function TenantDetailPage({ params }: PageProps) {
               <div className="flex items-center justify-between text-sm">
                 <span className="text-muted-foreground">Trial läuft ab</span>
                 <span className={tenant.trialEndsAt < new Date() ? "text-destructive" : ""}>
-                  {format(tenant.trialEndsAt, "dd.MM.yyyy", { locale: de })}
-                  {" "}({formatDistanceToNow(tenant.trialEndsAt, { addSuffix: true, locale: de })})
+                  {format(tenant.trialEndsAt, "dd.MM.yyyy", { locale: de })} (
+                  {formatDistanceToNow(tenant.trialEndsAt, { addSuffix: true, locale: de })})
                 </span>
               </div>
             )}
@@ -140,7 +162,8 @@ export default async function TenantDetailPage({ params }: PageProps) {
               { label: "OUs", value: String(ouCount) },
               {
                 label: "Auto-Login-Domains",
-                value: tenant.autoLoginDomains.length > 0 ? tenant.autoLoginDomains.join(", ") : "—",
+                value:
+                  tenant.autoLoginDomains.length > 0 ? tenant.autoLoginDomains.join(", ") : "—",
               },
               {
                 label: "Angelegt",
