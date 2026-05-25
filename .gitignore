@@ -49,3 +49,12 @@ next-env.d.ts
 
 # prisma migrations dev lock
 prisma/migrations/migration_lock.toml
+
+# Claude Code
+.claude/
+
+# Mockups / Entwürfe
+mockups/
+
+# Add-in Build-Artefakte
+packages/outlook-addin/trustello-addin.zip
