@@ -5,11 +5,32 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
-import { Loader2, X, Paperclip, FileText, CheckCircle2, AlertCircle, Save, ChevronDown, Mail, Shield, Lock, ShieldCheck, UserPlus, Info, MessageSquare, AlertTriangle } from "lucide-react";
+import {
+  Loader2,
+  X,
+  Paperclip,
+  FileText,
+  CheckCircle2,
+  AlertCircle,
+  Save,
+  ChevronDown,
+  Mail,
+  Shield,
+  Lock,
+  ShieldCheck,
+  UserPlus,
+  Info,
+  MessageSquare,
+  AlertTriangle,
+} from "lucide-react";
 import { RichTextEditor } from "./RichTextEditor";
 
 import { sendMessage } from "@/server/actions/messages";
-import { searchCustomers, quickCreateCustomer, type CustomerSearchResult } from "@/server/actions/customers";
+import {
+  searchCustomers,
+  quickCreateCustomer,
+  type CustomerSearchResult,
+} from "@/server/actions/customers";
 import { getMessageTemplates } from "@/server/actions/message-templates";
 import { sendMessageSchema, type SendMessageInput } from "@/lib/validation/messages";
 import { formatPhoneDisplay } from "@/lib/sms/phone";
@@ -49,7 +70,8 @@ const SECURITY_LEVELS = [
     badge: "Stufe 1",
     icon: Mail,
     color: "slate",
-    description: "Transportverschlüsselt (TLS). Für allgemeine Informationen ohne besondere Schutzanforderung.",
+    description:
+      "Transportverschlüsselt (TLS). Für allgemeine Informationen ohne besondere Schutzanforderung.",
   },
   {
     value: "LEVEL_2",
@@ -57,7 +79,8 @@ const SECURITY_LEVELS = [
     badge: "Stufe 2 · Empfohlen",
     icon: Shield,
     color: "blue",
-    description: "Ende-zu-Ende-verschlüsselt. Nur der Empfänger kann den Inhalt lesen — geeignet für behördliche Korrespondenz.",
+    description:
+      "Ende-zu-Ende-verschlüsselt. Nur der Empfänger kann den Inhalt lesen — geeignet für behördliche Korrespondenz.",
   },
   {
     value: "LEVEL_3",
@@ -65,7 +88,8 @@ const SECURITY_LEVELS = [
     badge: "Stufe 3",
     icon: Lock,
     color: "amber",
-    description: "Verschlüsselt + Passwortschutz. Der Empfänger benötigt ein Passwort — für besonders sensible Inhalte.",
+    description:
+      "Verschlüsselt + Passwortschutz. Der Empfänger benötigt ein Passwort — für besonders sensible Inhalte.",
   },
   {
     value: "LEVEL_4",
@@ -73,7 +97,8 @@ const SECURITY_LEVELS = [
     badge: "Stufe 4",
     icon: ShieldCheck,
     color: "rose",
-    description: "Passwortschutz mit verschärften Zugangsanforderungen. Für hochsensible Dokumente und kritische Informationen.",
+    description:
+      "Passwortschutz mit verschärften Zugangsanforderungen. Für hochsensible Dokumente und kritische Informationen.",
   },
 ] as const;
 
@@ -82,23 +107,23 @@ type SecurityLevelColor = (typeof SECURITY_LEVELS)[number]["color"];
 
 const COLOR_STYLES: Record<SecurityLevelColor, { card: string; icon: string; badge: string }> = {
   slate: {
-    card:  "border-slate-200 bg-slate-50 ring-slate-400",
-    icon:  "bg-slate-100 text-slate-500",
+    card: "border-slate-200 bg-slate-50 ring-slate-400",
+    icon: "bg-slate-100 text-slate-500",
     badge: "bg-slate-100 text-slate-600",
   },
   blue: {
-    card:  "border-blue-200 bg-blue-50 ring-blue-500",
-    icon:  "bg-blue-100 text-blue-600",
+    card: "border-blue-200 bg-blue-50 ring-blue-500",
+    icon: "bg-blue-100 text-blue-600",
     badge: "bg-blue-100 text-blue-700",
   },
   amber: {
-    card:  "border-amber-200 bg-amber-50 ring-amber-500",
-    icon:  "bg-amber-100 text-amber-600",
+    card: "border-amber-200 bg-amber-50 ring-amber-500",
+    icon: "bg-amber-100 text-amber-600",
     badge: "bg-amber-100 text-amber-700",
   },
   rose: {
-    card:  "border-rose-200 bg-rose-50 ring-rose-500",
-    icon:  "bg-rose-100 text-rose-600",
+    card: "border-rose-200 bg-rose-50 ring-rose-500",
+    icon: "bg-rose-100 text-rose-600",
     badge: "bg-rose-100 text-rose-700",
   },
 };
@@ -135,11 +160,15 @@ function SecurityLevelSelector({
               <Icon className="h-4 w-4" />
             </div>
             <div>
-              <span className={`mb-1 inline-block rounded-full px-1.5 py-0.5 text-[10px] font-medium leading-none ${styles.badge}`}>
+              <span
+                className={`mb-1 inline-block rounded-full px-1.5 py-0.5 text-[10px] font-medium leading-none ${styles.badge}`}
+              >
                 {level.badge}
               </span>
               <p className="text-sm font-medium leading-tight">{level.label}</p>
-              <p className="mt-1 text-[11px] leading-snug text-muted-foreground">{level.description}</p>
+              <p className="mt-1 text-[11px] leading-snug text-muted-foreground">
+                {level.description}
+              </p>
             </div>
           </button>
         );
@@ -171,17 +200,38 @@ type DraftData = {
   subject: string;
   body: string;
   securityLevel: string;
-  recipient?: { id: string; firstName: string; lastName: string; email: string; citizenAccountId: string | null; mobilePhone: string | null };
+  recipient?: {
+    id: string;
+    firstName: string;
+    lastName: string;
+    email: string;
+    citizenAccountId: string | null;
+    mobilePhone: string | null;
+  };
 };
 
 type Template = { id: string; name: string; subject: string | null; body: string };
 type GroupedTemplates = { global: Template[]; ou: Template[]; user: Template[] };
 type MyOU = { id: string; name: string };
-type ComposeFormProps = { signature?: string | null; templates?: GroupedTemplates | Template[]; myOUs?: MyOU[] };
+type ComposeFormProps = {
+  signature?: string | null;
+  templates?: GroupedTemplates | Template[];
+  myOUs?: MyOU[];
+};
 
-function TemplateItem({ tpl, onApply, defaultSignatureBody }: { tpl: Template; onApply: (body: string) => void; defaultSignatureBody: string }) {
+function TemplateItem({
+  tpl,
+  onApply,
+  defaultSignatureBody,
+}: {
+  tpl: Template;
+  onApply: (body: string) => void;
+  defaultSignatureBody: string;
+}) {
   return (
-    <DropdownMenuItem onClick={() => onApply(defaultSignatureBody ? tpl.body + defaultSignatureBody : tpl.body)}>
+    <DropdownMenuItem
+      onClick={() => onApply(defaultSignatureBody ? tpl.body + defaultSignatureBody : tpl.body)}
+    >
       {tpl.name}
     </DropdownMenuItem>
   );
@@ -192,7 +242,11 @@ function normalizeTemplates(templates: GroupedTemplates | Template[]): GroupedTe
   return templates;
 }
 
-export function ComposeForm({ signature, templates: rawTemplates = [], myOUs = [] }: ComposeFormProps) {
+export function ComposeForm({
+  signature,
+  templates: rawTemplates = [],
+  myOUs = [],
+}: ComposeFormProps) {
   const templates = normalizeTemplates(rawTemplates as GroupedTemplates | Template[]);
   const router = useRouter();
   const [selectedRecipient, setSelectedRecipient] = useState<CustomerSearchResult | null>(null);
@@ -224,7 +278,9 @@ export function ComposeForm({ signature, templates: rawTemplates = [], myOUs = [
     try {
       const raw = localStorage.getItem(DRAFT_KEY);
       if (raw) restoredDraft.current = JSON.parse(raw) as DraftData;
-    } catch { /* ignore */ }
+    } catch {
+      /* ignore */
+    }
   }
   const draft = restoredDraft.current;
 
@@ -251,30 +307,42 @@ export function ComposeForm({ signature, templates: rawTemplates = [], myOUs = [
     if (draft?.recipient) {
       setSelectedRecipient(draft.recipient as CustomerSearchResult);
     }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const securityLevel = form.watch("securityLevel");
   const isPasswordLevel = securityLevel === "LEVEL_3" || securityLevel === "LEVEL_4";
 
   // Auto-save draft with 1s debounce
-  const saveDraft = useCallback((values: Partial<SendMessageInput>, recipient: CustomerSearchResult | null) => {
-    if (saveTimerRef.current) clearTimeout(saveTimerRef.current);
-    saveTimerRef.current = setTimeout(() => {
-      try {
-        const data: DraftData = {
-          subject: values.subject ?? "",
-          body: values.body ?? "",
-          securityLevel: values.securityLevel ?? "LEVEL_2",
-          recipient: recipient
-            ? { id: recipient.id, firstName: recipient.firstName, lastName: recipient.lastName, email: recipient.email, citizenAccountId: recipient.citizenAccountId, mobilePhone: recipient.mobilePhone }
-            : undefined,
-        };
-        localStorage.setItem(DRAFT_KEY, JSON.stringify(data));
-        setDraftSavedAt(new Date());
-      } catch { /* ignore */ }
-    }, 1000);
-  }, []);
+  const saveDraft = useCallback(
+    (values: Partial<SendMessageInput>, recipient: CustomerSearchResult | null) => {
+      if (saveTimerRef.current) clearTimeout(saveTimerRef.current);
+      saveTimerRef.current = setTimeout(() => {
+        try {
+          const data: DraftData = {
+            subject: values.subject ?? "",
+            body: values.body ?? "",
+            securityLevel: values.securityLevel ?? "LEVEL_2",
+            recipient: recipient
+              ? {
+                  id: recipient.id,
+                  firstName: recipient.firstName,
+                  lastName: recipient.lastName,
+                  email: recipient.email,
+                  citizenAccountId: recipient.citizenAccountId,
+                  mobilePhone: recipient.mobilePhone,
+                }
+              : undefined,
+          };
+          localStorage.setItem(DRAFT_KEY, JSON.stringify(data));
+          setDraftSavedAt(new Date());
+        } catch {
+          /* ignore */
+        }
+      }, 1000);
+    },
+    [],
+  );
 
   // Watch form and auto-save on change
   useEffect(() => {
@@ -333,13 +401,16 @@ export function ComposeForm({ signature, templates: rawTemplates = [], myOUs = [
       const parts = local.split(/[._-]/).filter(Boolean);
       if (parts.length >= 2) {
         pre.firstName = parts[0]!.charAt(0).toUpperCase() + parts[0]!.slice(1);
-        pre.lastName  = parts.slice(1).map(p => p.charAt(0).toUpperCase() + p.slice(1)).join(" ");
+        pre.lastName = parts
+          .slice(1)
+          .map((p) => p.charAt(0).toUpperCase() + p.slice(1))
+          .join(" ");
       }
     } else {
       const parts = q.split(" ").filter(Boolean);
       if (parts.length >= 2) {
         pre.firstName = parts[0]!;
-        pre.lastName  = parts.slice(1).join(" ");
+        pre.lastName = parts.slice(1).join(" ");
       } else {
         pre.firstName = q;
       }
@@ -355,7 +426,11 @@ export function ComposeForm({ signature, templates: rawTemplates = [], myOUs = [
   const handleCreateCustomer = () => {
     setNewFormError(null);
     startCreate(async () => {
-      const result = await quickCreateCustomer({ firstName: newFirstName, lastName: newLastName, email: newEmail });
+      const result = await quickCreateCustomer({
+        firstName: newFirstName,
+        lastName: newLastName,
+        email: newEmail,
+      });
       if (result.error || !result.customer) {
         setNewFormError(result.error ?? "Fehler beim Anlegen");
         return;
@@ -376,9 +451,7 @@ export function ComposeForm({ signature, templates: rawTemplates = [], myOUs = [
     xhr.upload.onprogress = (e) => {
       if (e.lengthComputable) {
         const pct = Math.round((e.loaded / e.total) * 95); // reserve 5% for scan
-        setAttachments((prev) =>
-          prev.map((a) => (a.id === fileId ? { ...a, progress: pct } : a)),
-        );
+        setAttachments((prev) => prev.map((a) => (a.id === fileId ? { ...a, progress: pct } : a)));
       }
     };
 
@@ -395,7 +468,9 @@ export function ComposeForm({ signature, templates: rawTemplates = [], myOUs = [
           .then((data: { scanStatus?: string; error?: string }) => {
             if (data.error) {
               setAttachments((prev) =>
-                prev.map((a) => (a.id === fileId ? { ...a, status: "error", error: data.error } : a)),
+                prev.map((a) =>
+                  a.id === fileId ? { ...a, status: "error", error: data.error } : a,
+                ),
               );
             } else {
               setAttachments((prev) =>
@@ -408,13 +483,19 @@ export function ComposeForm({ signature, templates: rawTemplates = [], myOUs = [
           .catch(() => {
             setAttachments((prev) =>
               prev.map((a) =>
-                a.id === fileId ? { ...a, status: "error", error: "Virenprüfung fehlgeschlagen" } : a,
+                a.id === fileId
+                  ? { ...a, status: "error", error: "Virenprüfung fehlgeschlagen" }
+                  : a,
               ),
             );
           });
       } else {
         const msg = (() => {
-          try { return (JSON.parse(xhr.responseText) as { error: string }).error; } catch { return "Upload fehlgeschlagen"; }
+          try {
+            return (JSON.parse(xhr.responseText) as { error: string }).error;
+          } catch {
+            return "Upload fehlgeschlagen";
+          }
         })();
         setAttachments((prev) =>
           prev.map((a) => (a.id === fileId ? { ...a, status: "error", error: msg } : a)),
@@ -468,7 +549,9 @@ export function ComposeForm({ signature, templates: rawTemplates = [], myOUs = [
     }
     const failed = attachments.filter((a) => a.status === "error");
     if (failed.length > 0) {
-      toast.error("Einige Anhänge konnten nicht hochgeladen werden. Bitte entfernen und erneut versuchen.");
+      toast.error(
+        "Einige Anhänge konnten nicht hochgeladen werden. Bitte entfernen und erneut versuchen.",
+      );
       return;
     }
     startSend(async () => {
@@ -493,7 +576,11 @@ export function ComposeForm({ signature, templates: rawTemplates = [], myOUs = [
       if (result.error) {
         toast.error(result.error);
       } else {
-        try { localStorage.removeItem(DRAFT_KEY); } catch { /* ignore */ }
+        try {
+          localStorage.removeItem(DRAFT_KEY);
+        } catch {
+          /* ignore */
+        }
         toast.success("Nachricht erfolgreich gesendet");
         router.push("/inbox");
       }
@@ -527,16 +614,18 @@ export function ComposeForm({ signature, templates: rawTemplates = [], myOUs = [
                 <div className="flex items-start gap-1.5 rounded-md bg-amber-50 px-3 py-2 text-xs text-amber-700">
                   <Info className="mt-0.5 h-3.5 w-3.5 shrink-0" />
                   <span>
-                    Dieser Kontakt hat noch kein Postfach-Konto. Mit dem Versand erhält er automatisch eine Einladung zur Registrierung.
+                    Dieser Kontakt hat noch kein Postfach-Konto. Mit dem Versand erhält er
+                    automatisch eine Einladung zur Registrierung.
                   </span>
                 </div>
               )}
-              {isPasswordLevel && (
-                selectedRecipient.mobilePhone ? (
+              {isPasswordLevel &&
+                (selectedRecipient.mobilePhone ? (
                   <div className="flex items-center gap-1.5 rounded-md bg-green-50 px-3 py-2 text-xs text-green-700">
                     <MessageSquare className="h-3.5 w-3.5 shrink-0" />
                     <span>
-                      Passwort wird automatisch per SMS gesendet ({formatPhoneDisplay(selectedRecipient.mobilePhone)})
+                      Passwort wird automatisch per SMS gesendet (
+                      {formatPhoneDisplay(selectedRecipient.mobilePhone)})
                     </span>
                   </div>
                 ) : (
@@ -546,8 +635,7 @@ export function ComposeForm({ signature, templates: rawTemplates = [], myOUs = [
                       Kein Mobiltelefon hinterlegt — Passwort muss manuell übermittelt werden.
                     </span>
                   </div>
-                )
-              )}
+                ))}
             </div>
           ) : showNewForm ? (
             <div className="space-y-3 rounded-md border border-blue-200 bg-blue-50/50 p-4">
@@ -588,7 +676,8 @@ export function ComposeForm({ signature, templates: rawTemplates = [], myOUs = [
               </div>
               {newFormError && (
                 <p className="flex items-center gap-1.5 text-xs text-destructive">
-                  <AlertCircle className="h-3.5 w-3.5 shrink-0" />{newFormError}
+                  <AlertCircle className="h-3.5 w-3.5 shrink-0" />
+                  {newFormError}
                 </p>
               )}
               <div className="flex gap-2">
@@ -596,12 +685,19 @@ export function ComposeForm({ signature, templates: rawTemplates = [], myOUs = [
                   type="button"
                   size="sm"
                   onClick={handleCreateCustomer}
-                  disabled={isCreating || !newFirstName.trim() || !newLastName.trim() || !newEmail.trim()}
+                  disabled={
+                    isCreating || !newFirstName.trim() || !newLastName.trim() || !newEmail.trim()
+                  }
                 >
                   {isCreating && <Loader2 className="mr-1.5 h-3.5 w-3.5 animate-spin" />}
                   Anlegen &amp; auswählen
                 </Button>
-                <Button type="button" size="sm" variant="outline" onClick={() => setShowNewForm(false)}>
+                <Button
+                  type="button"
+                  size="sm"
+                  variant="outline"
+                  onClick={() => setShowNewForm(false)}
+                >
                   Abbrechen
                 </Button>
               </div>
@@ -630,7 +726,9 @@ export function ComposeForm({ signature, templates: rawTemplates = [], myOUs = [
                         onClick={() => selectRecipient(c)}
                       >
                         <div className="flex-1">
-                          <span className="font-medium">{c.firstName} {c.lastName}</span>
+                          <span className="font-medium">
+                            {c.firstName} {c.lastName}
+                          </span>
                           <span className="ml-2 text-xs text-muted-foreground">{c.email}</span>
                         </div>
                         {!c.citizenAccountId && (
@@ -648,7 +746,9 @@ export function ComposeForm({ signature, templates: rawTemplates = [], myOUs = [
                 searchQuery.trim().length >= 2 &&
                 searchResults.length === 0 && (
                   <div className="absolute z-10 mt-1 w-full rounded-md border bg-popover shadow-md">
-                    <p className="px-3 py-2 text-sm text-muted-foreground">Kein Kontakt gefunden.</p>
+                    <p className="px-3 py-2 text-sm text-muted-foreground">
+                      Kein Kontakt gefunden.
+                    </p>
                     <button
                       type="button"
                       className="flex w-full items-center gap-2 border-t px-3 py-2 text-sm font-medium text-blue-600 hover:bg-blue-50"
@@ -687,7 +787,9 @@ export function ComposeForm({ signature, templates: rawTemplates = [], myOUs = [
             <FormItem>
               <div className="flex items-center justify-between">
                 <FormLabel>Nachricht</FormLabel>
-                {(templates.user.length > 0 || templates.ou.length > 0 || templates.global.length > 0) && (
+                {(templates.user.length > 0 ||
+                  templates.ou.length > 0 ||
+                  templates.global.length > 0) && (
                   <DropdownMenu>
                     <DropdownMenuTrigger
                       render={
@@ -704,9 +806,20 @@ export function ComposeForm({ signature, templates: rawTemplates = [], myOUs = [
                     <DropdownMenuContent align="end" className="w-64">
                       {templates.user.length > 0 && (
                         <DropdownMenuGroup>
-                          <DropdownMenuLabel className="text-xs font-medium text-muted-foreground">Persönlich</DropdownMenuLabel>
+                          <DropdownMenuLabel className="text-xs font-medium text-muted-foreground">
+                            Persönlich
+                          </DropdownMenuLabel>
                           {templates.user.map((tpl) => (
-                            <TemplateItem key={tpl.id} tpl={tpl} onApply={(body) => { field.onChange(body); if (tpl.subject) form.setValue("subject", tpl.subject, { shouldValidate: true }); }} defaultSignatureBody={defaultSignatureBody} />
+                            <TemplateItem
+                              key={tpl.id}
+                              tpl={tpl}
+                              onApply={(body) => {
+                                field.onChange(body);
+                                if (tpl.subject)
+                                  form.setValue("subject", tpl.subject, { shouldValidate: true });
+                              }}
+                              defaultSignatureBody={defaultSignatureBody}
+                            />
                           ))}
                         </DropdownMenuGroup>
                       )}
@@ -714,20 +827,44 @@ export function ComposeForm({ signature, templates: rawTemplates = [], myOUs = [
                         <>
                           {templates.user.length > 0 && <DropdownMenuSeparator />}
                           <DropdownMenuGroup>
-                            <DropdownMenuLabel className="text-xs font-medium text-muted-foreground">Meine Einheit</DropdownMenuLabel>
+                            <DropdownMenuLabel className="text-xs font-medium text-muted-foreground">
+                              Meine Einheit
+                            </DropdownMenuLabel>
                             {templates.ou.map((tpl) => (
-                              <TemplateItem key={tpl.id} tpl={tpl} onApply={(body) => { field.onChange(body); if (tpl.subject) form.setValue("subject", tpl.subject, { shouldValidate: true }); }} defaultSignatureBody={defaultSignatureBody} />
+                              <TemplateItem
+                                key={tpl.id}
+                                tpl={tpl}
+                                onApply={(body) => {
+                                  field.onChange(body);
+                                  if (tpl.subject)
+                                    form.setValue("subject", tpl.subject, { shouldValidate: true });
+                                }}
+                                defaultSignatureBody={defaultSignatureBody}
+                              />
                             ))}
                           </DropdownMenuGroup>
                         </>
                       )}
                       {templates.global.length > 0 && (
                         <>
-                          {(templates.user.length > 0 || templates.ou.length > 0) && <DropdownMenuSeparator />}
+                          {(templates.user.length > 0 || templates.ou.length > 0) && (
+                            <DropdownMenuSeparator />
+                          )}
                           <DropdownMenuGroup>
-                            <DropdownMenuLabel className="text-xs font-medium text-muted-foreground">Global</DropdownMenuLabel>
+                            <DropdownMenuLabel className="text-xs font-medium text-muted-foreground">
+                              Global
+                            </DropdownMenuLabel>
                             {templates.global.map((tpl) => (
-                              <TemplateItem key={tpl.id} tpl={tpl} onApply={(body) => { field.onChange(body); if (tpl.subject) form.setValue("subject", tpl.subject, { shouldValidate: true }); }} defaultSignatureBody={defaultSignatureBody} />
+                              <TemplateItem
+                                key={tpl.id}
+                                tpl={tpl}
+                                onApply={(body) => {
+                                  field.onChange(body);
+                                  if (tpl.subject)
+                                    form.setValue("subject", tpl.subject, { shouldValidate: true });
+                                }}
+                                defaultSignatureBody={defaultSignatureBody}
+                              />
                             ))}
                           </DropdownMenuGroup>
                         </>
@@ -737,11 +874,7 @@ export function ComposeForm({ signature, templates: rawTemplates = [], myOUs = [
                 )}
               </div>
               <FormControl>
-                <RichTextEditor
-                  value={field.value}
-                  onChange={field.onChange}
-                  minHeight={280}
-                />
+                <RichTextEditor value={field.value} onChange={field.onChange} minHeight={280} />
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -872,8 +1005,13 @@ export function ComposeForm({ signature, templates: rawTemplates = [], myOUs = [
               name="ouId"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel className="text-xs text-slate-600">Organisationseinheit (optional)</FormLabel>
-                  <Select onValueChange={(v) => field.onChange(v === "__none__" ? "" : v)} value={field.value || "__none__"}>
+                  <FormLabel className="text-xs text-slate-600">
+                    Organisationseinheit (optional)
+                  </FormLabel>
+                  <Select
+                    onValueChange={(v) => field.onChange(v === "__none__" ? "" : v)}
+                    value={field.value || "__none__"}
+                  >
                     <FormControl>
                       <SelectTrigger className="h-8 text-sm">
                         <SelectValue placeholder="Keine Einheit angeben" />
@@ -882,7 +1020,9 @@ export function ComposeForm({ signature, templates: rawTemplates = [], myOUs = [
                     <SelectContent>
                       <SelectItem value="__none__">Keine Einheit angeben</SelectItem>
                       {myOUs.map((ou) => (
-                        <SelectItem key={ou.id} value={ou.id}>{ou.name}</SelectItem>
+                        <SelectItem key={ou.id} value={ou.id}>
+                          {ou.name}
+                        </SelectItem>
                       ))}
                     </SelectContent>
                   </Select>
@@ -904,8 +1044,12 @@ export function ComposeForm({ signature, templates: rawTemplates = [], myOUs = [
                     />
                   </FormControl>
                   <div>
-                    <FormLabel className="cursor-pointer font-normal text-sm">Meinen Namen nicht anzeigen</FormLabel>
-                    <p className="text-xs text-muted-foreground">Empfänger sieht nur Behörde/Einheit, nicht Ihren Namen.</p>
+                    <FormLabel className="cursor-pointer font-normal text-sm">
+                      Meinen Namen nicht anzeigen
+                    </FormLabel>
+                    <p className="text-xs text-muted-foreground">
+                      Empfänger sieht nur Behörde/Einheit, nicht Ihren Namen.
+                    </p>
                   </div>
                 </FormItem>
               )}
